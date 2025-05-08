@@ -20,6 +20,7 @@ const config = {
 console.log('CONFIGURACIÓN DE CONEXIÓN:', JSON.stringify(config, null, 2));  // Esto te ayudará a verificar si las variables están siendo leídas correctamente
 console.log('Valor de server:', process.env.DB_SERVER);
 console.log('Type of DB_SERVER:', typeof process.env.DB_SERVER);
+
 async function conectarDB() {
   try {
     await sql.connect(config);
