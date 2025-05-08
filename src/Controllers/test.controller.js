@@ -11,7 +11,12 @@ class TestController {
 
   async uploadFileToS3(req, res) {
       try {
-        const result = await s3Manager.uploadFileToS3(req.files.file); // Loading the first file from the array
+  
+        if (!req.files.file) {
+            throw new Error('El archivo (file) es requerido.');
+        }
+
+        const result = await s3Manager.uploadFileToS3(req.body.filePath, req.files.file, req.body.isPrivate); // Loading the first file from the array
         return res.status(200).json({ message: 'Archivo cargado correctamente', result });
       } catch (error) {
         console.error('Error al cargar el archivo:', error);
@@ -30,12 +35,12 @@ class TestController {
 
   async getFileFromS3(req, res) {
     try {
-      const result = await s3Manager.getFileFromS3(req.params.fileName);
+      const result = await s3Manager.getFileFromS3(req.params.filePath);
       if (!result) {
         return res.status(404).json({ message: 'Archivo no encontrado' });
       }
       console.log(result);
-      return res.status(200).json({ message: 'Se obtuvo el archivo correctamente', result: result.$metadata});
+      return res.status(200).json({ message: 'Se obtuvo el archivo correctamente', result});
     } catch (error) {
       res.status(500).json({ message: 'Error al obtener archivo', error: error.message });
     }
@@ -43,7 +48,7 @@ class TestController {
 
   async getPresignedURL(req, res) {
     try {
-      const result = await s3Manager.generatePresignedUrl(req.params.fileName);
+      const result = await s3Manager.generatePresignedUrl(req.params.folderName, req.params.fileName);
       if (!result) {
         return res.status(404).json({ message: 'Archivo no encontrado' });
       }
