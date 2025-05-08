@@ -25,7 +25,6 @@ const getPublicUrl = (filePath) => {
     return publicUrl;
 }
 
-
 /**
 * Upload a file to S3
 * @param {*} filePath 

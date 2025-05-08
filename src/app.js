@@ -28,7 +28,7 @@ app.use((fileUpload({
 app.use(morgan('dev')); // Show the logs in the console
 
 app.use('/api', usuarios);
-app.use('/files', test);
+app.use('/test', test);
 
 const port = process.env.PORT || 3000;
 

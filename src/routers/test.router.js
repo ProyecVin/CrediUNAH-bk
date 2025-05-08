@@ -3,9 +3,10 @@ const router = express.Router();
 
 const TestController = require('../controllers/test.controller.js');
 
-router.get('/', TestController.getFilesFromS3);
-router.post('/upload', TestController.uploadFileToS3);
-router.get('/:filePath(*)', TestController.getFileFromS3);
-router.get('/presignedURL/:folderName/:fileName', TestController.getPresignedURL);
+router.post('/qrcode/generate', TestController.generateQRCode);
 
+router.get('/files/', TestController.getFilesFromS3);
+router.post('/files/upload', TestController.uploadFileToS3);
+router.get('/files/:filePath(*)', TestController.getFileFromS3);
+router.get('/files/presignedURL/:folderName/:fileName', TestController.getPresignedURL);
 module.exports = router;
