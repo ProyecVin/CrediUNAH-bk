@@ -2,3 +2,5 @@
 /node_modules/
 .vscode/
 .vs/
+src/secrets/firebase-adminsdk.json
+
