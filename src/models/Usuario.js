@@ -1,8 +1,8 @@
 //const supabase = require('../config/supabase');
 // src/models/Usuario.js
 const sql = require('mssql');
+const config = require('../config/database')
 const config = require('../config/awsDB')
-
 
 class UserModel {
     async createUser(nombre, apellido, correo) {

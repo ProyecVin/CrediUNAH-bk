@@ -1,22 +1,35 @@
 const express = require('express');
 const cors = require('cors');
-const helmet = require('helmet');
+const fileUpload = require("express-fileupload");
 const morgan = require('morgan');
-const { notFoundHandler, errorHandler } = require('./utils/errorHandler');
+const helmet = require('helmet');
 
+const { notFoundHandler, errorHandler } = require('./utils/errorHandler');
 const { conectarDB, getConnection } = require('./config/awsDB');
-const routes = require('./routes');
 
 require('dotenv').config();
+require('./services/s3.service.js');
 
+const routes = require('./routes');
+const usuarios = require('./routers/routes.js');
+const test = require('./routers/test.router.js');
+const req = require('express/lib/request.js');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 getConnection();
+
+// Middleware
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
+
+app.use((fileUpload({
+  useTempFiles: true,
+  tempFileDir: './uploads',
+})));
+
 app.use('/api', routes);
 
 
@@ -24,16 +37,20 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
+app.use(morgan('dev')); // Show the logs in the console
 
+app.use('/api', usuarios);
+app.use('/test', test);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
+
+const port = process.env.PORT || 3000;
 
 // Ruta principal de que funciona el backend
 app.get('/', (req, res) => {
   res.json({ message: 'Backend funcionando correctamente' });
 });
-
-app.use(notFoundHandler);
-app.use(errorHandler);
-
 
 app.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
