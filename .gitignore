@@ -3,3 +3,4 @@
 .vscode/
 .vs/
 uploads/
+src/secrets/firebase-adminsdk.json

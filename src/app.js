@@ -1,23 +1,28 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const fileUpload = require("express-fileupload");
 const morgan = require('morgan');
+const helmet = require('helmet');
 
-const { conectarDB } = require('./config/database');
-require('./services/s3.service.js'); // Asegúrate de que este archivo exista y esté configurado correctamente
+const { notFoundHandler, errorHandler } = require('./utils/errorHandler');
+const { conectarDB, getConnection } = require('./config/awsDB');
 
-const app = express();
+require('dotenv').config();
+require('./services/s3.service.js');
 
-// Routers
+const routes = require('./routes');
 const usuarios = require('./routers/routes.js');
 const test = require('./routers/test.router.js');
 const req = require('express/lib/request.js');
 
-// conectarDB();
+const app = express();
+const port = process.env.PORT || 3000;
+
+getConnection();
 
 // Middleware
 app.use(cors());
+app.use(helmet());
 app.use(express.json());
 
 app.use((fileUpload({
@@ -25,14 +30,24 @@ app.use((fileUpload({
   tempFileDir: './uploads',
 })));
 
+app.use('/api', routes);
+
+
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
 app.use(morgan('dev')); // Show the logs in the console
 
 app.use('/api', usuarios);
 app.use('/test', test);
 
+app.use(notFoundHandler);
+app.use(errorHandler);
+
 const port = process.env.PORT || 3000;
 
-// Ruta de que funciona el backend
+// Ruta principal de que funciona el backend
 app.get('/', (req, res) => {
   res.json({ message: 'Backend funcionando correctamente' });
 });
@@ -40,3 +55,15 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
 });
+
+process.on('SIGINT', async () => {
+  console.log('Cerrando el servidor...');
+  
+  const { closePool } = require('./config/awsDB');
+  await closePool();
+    
+  process.exit(0);
+}
+
+);
+module.exports = app;
