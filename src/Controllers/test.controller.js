@@ -66,7 +66,6 @@ class TestController {
       if (!result) {
         return res.status(404).json({ message: 'Archivo no encontrado' });
       }
-      console.log(result);
       return res.status(200).json({ message: 'Código QR generado exitosamente', result});
     } catch (error) {
       res.status(500).json({ message: 'Error al generar código QR', error: error.message });
