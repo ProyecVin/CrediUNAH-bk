@@ -45,7 +45,7 @@ app.use('/test', test);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-const port = process.env.PORT || 3000;
+
 
 // Ruta principal de que funciona el backend
 app.get('/', (req, res) => {
