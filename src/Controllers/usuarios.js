@@ -1,5 +1,5 @@
 //src/Controllers/usuarios.js
-const UserModel = require ('../models/Usuario');
+const UserModel = require ('../models/Usuario.js');
 
 class UserController {
   async createUser(req, res) {
