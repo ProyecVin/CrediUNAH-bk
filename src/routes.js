@@ -8,8 +8,12 @@ const authRoutes = require('./routes/authRoutes');
 
 
 const usuarios = require('./routes/routes');
+const operationalUnistRoutes = require('./routes/operationalUnitsRoutes')
+
 router.use('/auth', authRoutes);
 router.use('/usuarios', usuarios);
+router.use('/operation', operationalUnitsRoutes)
+
 
 
 module.exports = router;
