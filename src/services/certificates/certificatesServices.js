@@ -5,6 +5,8 @@ const courseModel = require('../../models/courses/courseModel.js');
 const enrollmentModel = require('../../models/enrollments/EnrollmentModel.js')
 const signatureModel = require('../../models/signatures/SignatureModel.js');
 
+const templateMapper = require('../../templates/templateMapper.js');
+
 class CertificateServices{
 
     constructor(){
@@ -20,6 +22,12 @@ class CertificateServices{
         try {
             // Get info for certificates
             const certificateInfo = await CertificateServices.getInfoForCertificate(courseId, this.courseModel, this.enrollmentModel, this.certificateTypeModel, this.certificateLogoModel, this.signatureModel);
+
+            // Generating certificates for each enrollment following stablished parameters 
+            certificateInfo.certificates.map(async (certificate) => {
+                const templateKey = certificate.CERTIFICATE_TYPE_ID;
+            });
+
             return certificateInfo;
             
         } catch (error) {
@@ -44,10 +52,10 @@ class CertificateServices{
             certificateTypes.map(async (certificateType) => {
 
                 // Getting logos
-                const logos = await certificateLogoModel.getLogosByCourseAndCertificateType(courseId, certificateType.CERTIFICATE_TYPE_ID);
+                const logos = await certificateLogoModel.getLogosByCourseAndCertificateType(courseId, certificateType.certificateTypeId);
 
                 // Getting Signatures
-                const signatures = await signatureModel.getSignaturesByCourseAndCertificateType(courseId, certificateType.CERTIFICATE_TYPE_ID);
+                const signatures = await signatureModel.getSignaturesByCourseAndCertificateType(courseId, certificateType.certificateTypeId);
 
                 return {
                     certificateType,
@@ -62,6 +70,17 @@ class CertificateServices{
             enrollments,
             certificates: result
         };
+    }
+
+    /**
+     * Private Method to generate every certificate type for each enrollment following stablished parameters 
+     * of evaluation an course completion
+     * @param {*} certificateTypeId 
+     * @param {*} courseId 
+     * @param {*} enrollments 
+     */
+    _generateCertificates = async (certificateTypeId, courseId, enrollments) => {
+
     }
 }
 

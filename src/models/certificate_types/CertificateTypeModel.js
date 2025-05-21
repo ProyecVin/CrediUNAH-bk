@@ -7,13 +7,13 @@ class CertificateTypeModel {
             const pool = await getConnection();
             const result = await pool.request()
             .query(`SELECT 
-                        CT.ID AS CERTIFICATE_TYPE_ID, 
-                        CT.NAME AS CERTIFICATE_TYPE_NAME, 
-                        CT.DESCRIPTION AS CERTIFICATE_TYPE_DESCRIPTION,
-                        M.ID AS TEMPLATE_FILE_ID,
-                        M.NAME AS TEMPLATE_FILE_NAME,
-                        M.DESCRIPTION AS TEMPLATE_FILE_DESCRIPTION,
-                        M.URL AS TEMPLATE_FILE_URL
+                        CT.ID AS certificateTypeId, 
+                        CT.NAME AS certificateTypeName, 
+                        CT.DESCRIPTION AS certificateTypeDecription,
+                        M.ID AS templateFileId,
+                        M.NAME AS templateFileName,
+                        M.DESCRIPTION AS templateFileDescription,
+                        M.URL AS templateFileURL
                     FROM 
                         LINKAGE.COURSES C 
                         LEFT JOIN LINKAGE.COURSE_CERTIFICATE_TYPES CCT ON (CCT.COURSE_ID = C.ID)

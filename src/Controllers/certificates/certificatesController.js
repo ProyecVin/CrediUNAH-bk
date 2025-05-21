@@ -1,4 +1,4 @@
-const CertificateService = require('../../services/certificates/certificatesServices.js');
+const CertificateService = require('../../services/certificates/certificatesServices');
 
 class CertificatesController {
 

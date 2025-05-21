@@ -20,7 +20,7 @@ class SignatureModel {
                     LEFT JOIN LINKAGE.CERTIFICATE_SIGNATURES CS ON (CS.CERTIFICATE_TYPE_ID = CCT.CERTIFICATE_TYPE_ID AND CS.COURSE_ID = CCT.COURSE_ID)
                     LEFT JOIN LINKAGE.SIGNATURES S ON (S.ID = CS.SIGNATURE_ID)
                     LEFT JOIN LINKAGE.MEDIA M ON (M.ID = S.SIGNATURE_IMAGE_ID)
-                    WHERE CCT.COURSE_ID = ${courseId} AND CCT.CERTIFICATE_TYPE_ID = ${certificateTypeId}
+                    WHERE CCT.COURSE_ID = ${courseId} AND CCT.CERTIFICATE_TYPE_ID = '${certificateTypeId}'
             `);
 
             return result.recordset;        

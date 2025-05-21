@@ -16,7 +16,7 @@ class CertificateLogoModel {
                         LINKAGE.COURSE_CERTIFICATE_TYPES CCT
                         LEFT JOIN LINKAGE.CERTIFICATE_LOGOS CL ON (CL.COURSE_ID = CCT.COURSE_ID AND CL.CERTIFICATE_TYPE_ID = CCT.CERTIFICATE_TYPE_ID)
                         LEFT JOIN LINKAGE.MEDIA M ON (M.ID = CL.LOGO_IMAGE_ID)
-                    WHERE CCT.COURSE_ID = ${courseId} AND CCT.CERTIFICATE_TYPE_ID = ${certificateTypeId}
+                    WHERE CCT.COURSE_ID = ${courseId} AND CCT.CERTIFICATE_TYPE_ID = '${certificateTypeId}'
             `);
 
             return result.recordset;        
