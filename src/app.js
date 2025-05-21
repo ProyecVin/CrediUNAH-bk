@@ -4,7 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const { notFoundHandler, errorHandler } = require('./utils/errorHandler');
 
-const { conectarDB, getConnection } = require('./config/awsDB');
+const { getConnection } = require('./config/awsDB');
 const routes = require('./routes');
 
 require('dotenv').config();
@@ -14,6 +14,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 getConnection();
+// Middleware
 app.use(cors());
 app.use(helmet());
 app.use(express.json());

@@ -1,13 +1,13 @@
-// src/models/validations/userValidation.js
+//src/models/validations/userValidation.js
 const validator = require('validator');
 
 // Clase para validar datos de registro de usuario
 class UserRegisterValidation {
   constructor(data) {
-    this.nombre = data.nombre;
-    this.apellido = data.apellido;
-    this.correo = data.correo;
-    this.telefono = data.telefono;
+    this.id = data.id;
+    this.full_name = data.full_name || `${data.nombre || ''} ${data.apellido || ''}`.trim();
+    this.telefono = data.phone_number || data.telefono;
+    this.correo = data.email || data.correo;
     this.password = data.password;
     this.rol_id = data.rol_id;
   }
@@ -15,13 +15,18 @@ class UserRegisterValidation {
   validate() {
     const errors = [];
 
-    // Validación de campos requeridos
-    if (!this.nombre) errors.push('El nombre es requerido');
-    if (!this.apellido) errors.push('El apellido es requerido');
+    // Validaciones requeridas
+    if (!this.id) errors.push('La identidad (ID) es requerida');
+    if (!this.full_name) errors.push('El nombre completo es requerido');
     if (!this.correo) errors.push('El correo electrónico es requerido');
     if (!this.password) errors.push('La contraseña es requerida');
     if (!this.rol_id) errors.push('El rol es requerido');
-    
+
+    // Validación de identidad (longitud y formato)
+    if (this.id && !/^\d{13}$/.test(this.id)) {
+      errors.push('La identidad debe tener 13 dígitos numéricos');
+    }
+
     // Validación de email
     if (this.correo && !validator.isEmail(this.correo)) {
       errors.push('El correo electrónico es inválido');
@@ -58,18 +63,16 @@ class UserRegisterValidation {
 // Clase para validar datos de inicio de sesión
 class UserLoginValidation {
   constructor(data) {
-    this.correo = data.correo;
+    this.correo = data.email || data.correo;
     this.password = data.password;
   }
 
   validate() {
     const errors = [];
 
-    // Validación de campos requeridos
     if (!this.correo) errors.push('El correo electrónico es requerido');
     if (!this.password) errors.push('La contraseña es requerida');
-    
-    // Validación de email
+
     if (this.correo && !validator.isEmail(this.correo)) {
       errors.push('El correo electrónico es inválido');
     }
@@ -80,25 +83,13 @@ class UserLoginValidation {
 
 // Función para detectar posibles intentos de inyección SQL
 function validateSqlInjection(data) {
-  // Palabras clave peligrosas específicas de SQL
   const dangerousKeywords = ['exec', 'select', 'insert', 'delete', 'update', 'drop', 'alter', 'truncate'];
-  
-  // Caracteres peligrosos 
   const dangerousChars = ["'", ';', '--', '/*', '*/', '@@', '`', '"'];
 
   if (typeof data === 'string') {
-    // Convertir a minúsculas para hacer la búsqueda insensible a mayúsculas
     const lowerData = data.toLowerCase();
-    
-    // Si contiene alguna palabra clave peligrosa
-    if (dangerousKeywords.some(keyword => lowerData.includes(keyword))) {
-      return true;
-    }
-    
-    // Si contiene caracteres peligrosos
-    if (dangerousChars.some(char => data.includes(char))) {
-      return true;
-    }
+    if (dangerousKeywords.some(keyword => lowerData.includes(keyword))) return true;
+    if (dangerousChars.some(char => data.includes(char))) return true;
   }
   return false;
 }
