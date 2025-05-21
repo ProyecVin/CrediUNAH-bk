@@ -3,6 +3,6 @@ const router = express.Router();
 
 const CertificatesController = require('../controllers/certificates/certificatesController.js');
 
-router.get('/', CertificatesController.getAllCertificates);
+router.get('/generate/:courseId', CertificatesController.generateCertificates);
 
 module.exports = router;

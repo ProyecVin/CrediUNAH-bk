@@ -1,14 +1,19 @@
-const CertificateModel = require('../../models/certificates/certificateModel.js');
-const CertificateService = require('../../services/certificates/certificateService.js');
+const CertificateService = require('../../services/certificates/certificatesServices.js');
 
 class CertificatesController {
 
-  constructor() {}
+  constructor() {
+    this.certificateService = CertificateService;
+  }
 
-  async getAllCertificates(req, res) {
-    const result = await CertificateModel.getAllCertificates();
-
-    res.json({ message: 'Certificates Controller...', result });
+  generateCertificates = async (req, res) => {
+    try {
+        const result = await this.certificateService.generateCourseCertificates(req.params.courseId);
+        res.json ({ success: true, message: 'Certificates generated', result});
+    } catch (error) {
+        console.error('Error generating certificates:', error);
+        return res.status(500).json({ success: false, message: 'Error generating certificates', error: error.message });
+    }
   }
 
 }
