@@ -11,8 +11,9 @@ require('dotenv').config();
 require('./services/s3.service.js');
 
 const routes = require('./routes');
-const usuarios = require('./routers/routes.js');
-const test = require('./routers/test.router.js');
+const usuarios = require('./routes/routes.js');
+
+const test = require('./routes/test.router.js');
 const req = require('express/lib/request.js');
 
 const app = express();

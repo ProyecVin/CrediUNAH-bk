@@ -2,12 +2,12 @@
 const sql = require('mssql');
 const config = require('../../config/database');
 
-class CoursesModel {
-    async getCoursesForLanding() {
+class CoursesAdminModel {
+    async getCoursesForAdmin() {
         try {
             const pool = await sql.connect(config);
             const result = await pool.request()
-                .execute('linkage.get_courses_for_landing'); // Llamamos al procedimiento almacenado
+                .query('SELECT * FROM linkage.Courses'); // Consulta directa a la tabla o vista
             return result.recordset; // Devuelve array de cursos para landing
         } catch (err) {
             throw err;
@@ -15,4 +15,4 @@ class CoursesModel {
     }
 }
 
-module.exports = new CoursesModel();
+module.exports = new CoursesAdminModel();
