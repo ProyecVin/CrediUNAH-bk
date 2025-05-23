@@ -7,15 +7,15 @@ class SignatureModel {
             const pool = await getConnection();
             const result = await pool.request()
             .query(`SELECT 
-                        M.ID as SIGNATURE_IMAGE_ID, 
-                        M.NAME AS SIGNATURE_IMAGE_NAME, 
-                        M.DESCRIPTION AS SIGNATURE_DESCRIPTION, 
+                        M.ID as signatureImageId, 
+                        M.NAME AS signatureImageName, 
+                        M.DESCRIPTION AS signatureDescription, 
                         M.URL, 
-                        CS.SIGNATURE_ORDER,
-                        S.SIGNER_NAME,
-                        S.SIGNER_TITLE,
-                        S.IS_ACTIVE,
-                        S.ID AS SIGNATURE_ID
+                        CS.SIGNATURE_ORDER AS signatureOrder,
+                        S.SIGNER_NAME AS signerName,
+                        S.SIGNER_TITLE AS signerTitle,
+                        S.IS_ACTIVE AS isActive,
+                        S.ID AS signatureId
                     FROM LINKAGE.COURSE_CERTIFICATE_TYPES CCT
                     LEFT JOIN LINKAGE.CERTIFICATE_SIGNATURES CS ON (CS.CERTIFICATE_TYPE_ID = CCT.CERTIFICATE_TYPE_ID AND CS.COURSE_ID = CCT.COURSE_ID)
                     LEFT JOIN LINKAGE.SIGNATURES S ON (S.ID = CS.SIGNATURE_ID)

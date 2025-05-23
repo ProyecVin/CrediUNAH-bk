@@ -7,11 +7,11 @@ class CertificateLogoModel {
             const pool = await getConnection();
             const result = await pool.request()
             .query(`SELECT 
-                        M.ID as LOGO_FILE_ID, 
-                        M.NAME AS LOGO_FILE_NAME, 
-                        M.DESCRIPTION, 
+                        M.ID as logoFileId, 
+                        M.NAME AS logoFIleName, 
+                        M.DESCRIPTION AS description, 
                         M.URL, 
-                        CL.LOGO_ORDER
+                        CL.LOGO_ORDER AS logoOrder
                     FROM 
                         LINKAGE.COURSE_CERTIFICATE_TYPES CCT
                         LEFT JOIN LINKAGE.CERTIFICATE_LOGOS CL ON (CL.COURSE_ID = CCT.COURSE_ID AND CL.CERTIFICATE_TYPE_ID = CCT.CERTIFICATE_TYPE_ID)

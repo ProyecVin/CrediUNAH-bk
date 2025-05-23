@@ -10,9 +10,23 @@ generatePDFGridLayout(
     path.resolve(__dirname, '../../assets/generated/constPartFacuInge01Grid.pdf')
 );
 
-const generarCertificado = async (studentName, courseName, signers, durationInHours, courseType, operationalUnit) => {
+const generateCertificate = async (
+    templatePath,
+    studentName, 
+    studentDNI,
+    skills, 
+    courseName, 
+    operationalUnit, 
+    durationInHours, 
+    dateInLetters, 
+    courseType, 
+    logoPath,
+    signers,
+    qrBase64,
+    uniqueCode
+) => {
     // Read template
-    const templatePath = path.resolve(__dirname, "../../assets/templates/constPartFacuInge01.pdf");
+    templatePath = path.resolve(__dirname, "../../assets/templates/constPartFacuInge01.pdf");
     const templateBytes = fs.readFileSync(templatePath);
 
     // Document
@@ -38,18 +52,19 @@ const generarCertificado = async (studentName, courseName, signers, durationInHo
     const generalFontBold = await pdfDoc.embedFont(generalFontBoldBytes);
 
     // Name ot the student
-    drawTextP({
-        page,
-        text: studentName,
-        x: 200,
-        y: 350,
-        font: principalTextFont,
-        size: 36,
-        color: rgb(0.1, 0.1, 0.1),
-        is_centered: true
-    });
+    // drawTextP({
+    //     page,
+    //     text: studentName,
+    //     x: 200,
+    //     y: 350,
+    //     font: principalTextFont,
+    //     size: 36,
+    //     color: rgb(0.1, 0.1, 0.1),
+    //     is_centered: true
+    // });
 
     // Type 
+    courseType = 'curso';
     drawTextP({
         page,
         text: courseType.toLowerCase(),
@@ -62,15 +77,15 @@ const generarCertificado = async (studentName, courseName, signers, durationInHo
     });
 
     // Course name
-    drawTextP({
-        page,
-        text: courseName.toUpperCase(),
-        y: 268,
-        font: generalFontBold,
-        size: 19,
-        color: rgb(0.1, 0.1, 0.1),
-        is_centered: true
-    });
+    // drawTextP({
+    //     page,
+    //     text: courseName.toUpperCase(),
+    //     y: 268,
+    //     font: generalFontBold,
+    //     size: 19,
+    //     color: rgb(0.1, 0.1, 0.1),
+    //     is_centered: true
+    // });
 
     // Operational unit - first part - 26 words
 
@@ -110,17 +125,17 @@ const generarCertificado = async (studentName, courseName, signers, durationInHo
         is_centered: false
     });
 
-    // Duration in hours
-    drawTextP({
-        page,
-        text: durationInHours + ' horas.',
-        x: 710,
-        y: 209,
-        font: generalFontBold,
-        size: 21,
-        color: rgb(0,0,0),
-        is_centered: false
-    });
+    // // Duration in hours
+    // drawTextP({
+    //     page,
+    //     text: durationInHours + ' horas.',
+    //     x: 710,
+    //     y: 209,
+    //     font: generalFontBold,
+    //     size: 21,
+    //     color: rgb(0,0,0),
+    //     is_centered: false
+    // });
 
     // Issue Date
     drawTextP({
@@ -143,39 +158,39 @@ const generarCertificado = async (studentName, courseName, signers, durationInHo
     //     color: rgb(0,0,0),
     // })
 
-    x = 150;
-    signers.map((signer) => {
+    // x = 150;
+    // signers.map((signer) => {
 
-        y = 75;
-        // signer info
-        drawTextP({
-            page,
-            text: signer.name,
-            x,
-            y,
-            font: generalFont,
-            size: 13,
-            color: rgb(0,0,0),
-            is_centered: false
-        });
+    //     y = 75;
+    //     // signer info
+    //     drawTextP({
+    //         page,
+    //         text: signer.name,
+    //         x,
+    //         y,
+    //         font: generalFont,
+    //         size: 13,
+    //         color: rgb(0,0,0),
+    //         is_centered: false
+    //     });
 
-        signer.titles.map((title) => {
-            y = y - 13;
+    //     signer.titles.map((title) => {
+    //         y = y - 13;
 
-            drawTextP({
-                page,
-                text: title,
-                x,
-                y: y,
-                font: generalFont,
-                size: 13,
-                color: rgb(0,0,0),
-                is_centered: false
-            });
-        })
+    //         drawTextP({
+    //             page,
+    //             text: title,
+    //             x,
+    //             y: y,
+    //             font: generalFont,
+    //             size: 13,
+    //             color: rgb(0,0,0),
+    //             is_centered: false
+    //         });
+    //     })
 
-        x = 500;
-    })
+    //     x = 500;
+    // })
         
     // Save PDF
     const pdfBytes = await pdfDoc.save();
@@ -206,6 +221,10 @@ const signers = [
     }
 ]
 
-generarCertificado('Denisse Hernandez', 'inocuidad de los alimentos', signers,  40, 'curso')
+generateCertificate('Denisse Hernandez', 'inocuidad de los alimentos', signers,  40, 'curso')
   .then(() => console.log('✅ Certificado generado exitosamente.'))
   .catch((err) => console.error('❌ Error generando certificado:', err));
+
+  module.exports = {
+    generateCertificate
+  }

@@ -7,10 +7,10 @@ class EnrollmentModel {
             const pool = await getConnection();
             const result = await pool.request().query(`
                 SELECT 
-                    U.ID AS STUDENT_DNI, 
-                    U.FULL_NAME AS STUDENT_NAME,
-                    ES.ID AS STATUS_ID,
-                    ES.NAME AS STATUS
+                    U.ID AS studentDNI, 
+                    U.FULL_NAME AS studentName,
+                    ES.ID AS statusId,
+                    ES.NAME AS status
                 FROM 
                     LINKAGE.COURSE_ENROLLMENTS E
                     LEFT JOIN LINKAGE.USERS U ON (U.ID = E.STUDENT_ID)

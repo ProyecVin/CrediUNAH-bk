@@ -239,6 +239,7 @@ const drawImageFromBase64 = async ({ pdfDoc, page, base64, x, y, width, height }
   });
 }
 
+
 module.exports = {
   drawImagesInLine,
   drawTextP,

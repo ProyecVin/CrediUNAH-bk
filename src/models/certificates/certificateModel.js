@@ -13,8 +13,6 @@ class CertificateModel {
         }
     }
 
-    // Get all  info for certificates by course
-
 }
 
 module.exports = new CertificateModel();

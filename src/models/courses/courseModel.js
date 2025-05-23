@@ -8,14 +8,14 @@ class CourseModel {
             const result = await pool.request()
             .query(`
                 SELECT 
-                    C.ID AS COURSE_ID, 
-                    C.TITLE AS COURSE_NAME, 
-                    C.DESCRIPTION, 
-                    C.DURATION_IN_HOURS, 
-                    OU.ID AS OPERATIONAL_UNIT_ID, 
-                    OU.NAME AS OPERATIONAL_UNIT_NAME,
-                    CS.ID AS STATUS_ID,
-                    CS.NAME AS STATUS
+                    C.ID AS courseId, 
+                    C.TITLE AS courseName, 
+                    C.DESCRIPTION AS description, 
+                    C.duration_in_hours AS durationInHours, 
+                    OU.ID AS operationalUnitId, 
+                    OU.NAME AS operationalUnitName,
+                    CS.ID AS statusId,
+                    CS.NAME AS status
                 FROM 
                     LINKAGE.COURSES C
                     LEFT JOIN LINKAGE.OPERATIONAL_UNITS OU ON ( OU.ID = C.OPERATIONAL_UNIT_ID )
