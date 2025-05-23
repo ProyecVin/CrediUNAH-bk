@@ -19,6 +19,22 @@ class CoursesController {
             });
         }
     }
+
+    async getCourseById(req, res) {
+    try {
+        const { id } = req.params;
+        const course = await CoursesModel.getCourseById(id);
+        
+        if (!course) {
+            return res.status(404).json({ message: 'Curso no encontrado' });
+        }
+
+        res.json(course);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
 }
 
 module.exports = new CoursesController();

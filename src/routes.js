@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 
 const authRoutes = require('./routes/authRoutes');
-const operationalUnitsRoutes = require('./routes/operationalUnitsRoutes')
+const operationalUnitsRoutes = require('./routes/operationalUnitsRoutes');
+const instructorsRoutes = require('./routes/InstructorsRoutes');
 const coursesRoutes = require('./routes/coursesRoutes');
 const modalitiesRoutes = require('./routes/modalitiesRoutes');
 const postCourseRoutes = require('./routes/postCourseRoutes');
@@ -10,9 +11,11 @@ const courseAdminRoutes = require('./routes/coursesAdminRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/operation', operationalUnitsRoutes);
+router.use('/instructors', instructorsRoutes);
 router.use('/courses', coursesRoutes);
 router.use('/modalities', modalitiesRoutes); 
 router.use('/post', postCourseRoutes); 
 router.use('/courses', courseAdminRoutes); 
 
 module.exports = router;
+

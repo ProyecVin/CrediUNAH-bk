@@ -31,6 +31,19 @@ class CoursesModel {
             throw err;
         }
     }
+
+    async getCourseById(id) {
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('id', sql.Int, id)
+            .query(`SELECT * FROM linkage.Courses WHERE id = @id`);
+        return result.recordset[0]; // Solo un curso
+    } catch (err) {
+        throw err;
+    }
+}
+
 }
 
 module.exports = new CoursesModel();
