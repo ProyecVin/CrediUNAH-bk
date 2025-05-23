@@ -1,72 +1,128 @@
 const fs = require('fs');
-const { PDFDocument, rgb} = require('pdf-lib');
+const { PDFDocument, rgb, degrees } = require('pdf-lib');
 const fsp = require('fs/promises');
 const path = require('path');
 
-/**
- * Inserta varios logos centrados horizontalmente en una página PDF, cada uno con su altura especificada.
- * @param {Object} options
- * @param {PDFDocument} options.pdfDoc - Documento PDF
- * @param {PDFPage} options.page - Página donde se dibujarán los logos
- * @param {{ path: string, height: number }[]} options.logos - Lista de rutas locales con altura por imagen
- * @param {number} [options.y=700] - Posición vertical donde colocarlos
- */
-const drawImagesInLine = async ({ pdfDoc, page, logos, y = 700, spacing = 30 }) => {
-  const logoBuffers = await Promise.all(
-    logos.map(logo => fsp.readFile(path.resolve(logo.path)))
-  );
+const drawImageP = async ({pdfDoc, page, imagePath, x, y, height}) => {
+    console.log(imagePath);
 
-  const embeddedImages = await Promise.all(
-    logoBuffers.map((buffer, index) => {
-      const ext = path.extname(logos[index].path).toLowerCase();
-      return ext === '.jpg' || ext === '.jpeg'
-        ? pdfDoc.embedJpg(buffer)
-        : pdfDoc.embedPng(buffer);
-    })
-  );
+    const imageBytes = fs.readFileSync(imagePath);
 
-  const scaledImages = embeddedImages.map((img, index) => {
-    const height = logos[index].height;
-    const scale = height / img.height;
-    return {
-      image: img,
-      width: img.width * scale,
-      height,
-    };
-  });
+    // Detecta el formato automáticamente
+    const extension = path.extname(imagePath).toLowerCase();
+    let image;
 
-  const totalWidth = scaledImages.reduce((acc, img) => acc + img.width, 0) + spacing * (scaledImages.length - 1);
-  const pageWidth = page.getWidth();
-
-  let x = (pageWidth - totalWidth) / 2;
-
-  for (const img of scaledImages) {
-    page.drawImage(img.image, {
-      x,
-      y,
-      width: img.width,
-      height: img.height,
-    });
-    x += img.width + spacing;
-  }
-}
-
-const drawTextP = async ({ page, text, x, y, font, size, color, is_centered = false }) => {
-
-    if (is_centered) {
-        const { width } = page.getSize();
-        const textWidth = font.widthOfTextAtSize(text, size);
-        x = (width - textWidth) / 2;
+    if (extension === ".png") {
+      image = await pdfDoc.embedPng(imageBytes);
+    } else if (extension === ".jpg" || extension === ".jpeg") {
+      image = await pdfDoc.embedJpg(imageBytes);
+    } else {
+      throw new Error("Formato de imagen no soportado. Usa .png o .jpg");
     }
 
-    page.drawText(text, {
+    // Escalar altura
+    const scale = height / image.height;
+    const width = image.width * scale;
+
+    page.drawImage(image, {
+      x,
+      y,
+      width,
+      height,
+    });
+  };
+
+  /**
+   * Inserta varios logos centrados horizontalmente en una página PDF, cada uno con su altura especificada.
+   * @param {Object} options
+   * @param {PDFDocument} options.pdfDoc - Documento PDF
+   * @param {PDFPage} options.page - Página donde se dibujarán los logos
+   * @param {{ path: string, height: number }[]} options.logos - Lista de rutas locales con altura por imagen
+   * @param {number} [options.y=700] - Posición vertical donde colocarlos
+   */
+  const drawImagesInLine = async ({ pdfDoc, page, logos, y = 700, spacing = 30 }) => {
+    const logoBuffers = await Promise.all(
+      logos.map(logo => fsp.readFile(path.resolve(logo.path)))
+    );
+
+    const embeddedImages = await Promise.all(
+      logoBuffers.map((buffer, index) => {
+        const ext = path.extname(logos[index].path).toLowerCase();
+        return ext === '.jpg' || ext === '.jpeg'
+          ? pdfDoc.embedJpg(buffer)
+          : pdfDoc.embedPng(buffer);
+      })
+    );
+
+    const scaledImages = embeddedImages.map((img, index) => {
+      const height = logos[index].height;
+      const scale = height / img.height;
+      return {
+        image: img,
+        width: img.width * scale,
+        height,
+      };
+    });
+
+    const totalWidth = scaledImages.reduce((acc, img) => acc + img.width, 0) + spacing * (scaledImages.length - 1);
+    const pageWidth = page.getWidth();
+
+    let x = (pageWidth - totalWidth) / 2;
+
+    for (const img of scaledImages) {
+      page.drawImage(img.image, {
         x,
         y,
-        size,
-        font,
-        color,
-    });
+        width: img.width,
+        height: img.height,
+      });
+      x += img.width + spacing;
+    }
+  }
+
+  const drawTextP = async ({ page, text, x, y, font, size, color, is_centered = false }) => {
+
+      if (is_centered) {
+          const { width } = page.getSize();
+          const textWidth = font.widthOfTextAtSize(text, size);
+          x = (width - textWidth) / 2;
+      }
+
+      page.drawText(text, {
+          x,
+          y,
+          size,
+          font,
+          color,
+      });
 }
+
+const drawRotatedText = ({ page, text, x, y, font, size, color }) => {
+  page.drawText(text, {
+    x,
+    y,
+    size,
+    font,
+    color,
+    rotate: degrees(90),
+  });
+};
+
+const drawTextColumnCentered = ({ page, texts, font, size, color, x1, x2, yStart, lineSpacing }) => {
+  texts.forEach((text, index) => {
+    const textWidth = font.widthOfTextAtSize(text, size);
+    const x = x1 + ((x2 - x1) - textWidth) / 2;
+    const y = yStart - (index * lineSpacing);
+
+    page.drawText(text, {
+      x,
+      y,
+      size,
+      font,
+      color,
+    });
+  });
+};
 
 const generatePDFGridLayout = async (templatePath, outputPath) => {
   const existingPdfBytes = fs.readFileSync(templatePath);
@@ -118,5 +174,8 @@ module.exports = {
   drawImagesInLine,
   drawTextP,
   generatePDFGridLayout,
-  drawImageFromBase64
+  drawImageFromBase64,
+  drawTextColumnCentered,
+  drawImageP,
+  drawRotatedText
 }
