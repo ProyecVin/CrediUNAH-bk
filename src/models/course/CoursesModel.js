@@ -1,7 +1,5 @@
-// src/models/operational/Courses.js
 const sql = require('mssql');
 const config = require('../../config/database');
-
 class CoursesModel {
     async getCoursesForLanding() {
         try {
