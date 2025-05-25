@@ -13,6 +13,26 @@ const generateQRCode = ( data ) => {
     });
 }
 
+/**
+ * Extract Base64 constent from URI string of an image.
+ * @param {string} dataURI - String with format "data:image/png;base64,iVBORw0KGgo..."
+ * @returns {string} -  Base64 (without prefix)
+ */
+const extractBase64 = (dataURI) => {
+
+  if (!dataURI.startsWith('data:image/')) {
+    throw new Error('Formato no válido. Se esperaba "data:image/[tipo];base64,..."');
+  }
+
+  const parts = dataURI.split(',');
+  if (parts.length !== 2) {
+    throw new Error('Formato incorrecto. No se encontró la coma separadora.');
+  }
+
+  return parts[1];
+}
+
 module.exports = {
-    generateQRCode
+    generateQRCode,
+    extractBase64
 }

@@ -3,14 +3,14 @@ var fontkit = require('fontkit');
 const fs = require('fs');
 const path = require('path');
 const fsp = require('fs/promises');
-const { drawTextP, drawImagesInLine, drawImageFromBase64, generatePDFGridLayout, drawTextCenteredInLine } = require('../../utils/pdfGenerator'); 
+const { drawTextP, drawImageP, drawImagesInLine, generatePDFGridLayout, drawTextColumnCentered } = require('../../utils/pdfGenerator'); 
 
 generatePDFGridLayout(
     path.resolve(__dirname, '../../assets/templates/constPartFacuInge01.pdf'),  
     path.resolve(__dirname, '../../assets/generated/constPartFacuInge01Grid.pdf')
 );
 
-const generateCertificate = async (
+const generateCertificate = async ({
     templatePath,
     studentName, 
     studentDNI,
@@ -20,11 +20,11 @@ const generateCertificate = async (
     durationInHours, 
     dateInLetters, 
     courseType, 
-    logoPath,
+    logos,
     signers,
     qrBase64,
     uniqueCode
-) => {
+}) => {
     // Read template
     templatePath = path.resolve(__dirname, "../../assets/templates/constPartFacuInge01.pdf");
     const templateBytes = fs.readFileSync(templatePath);
@@ -51,97 +51,72 @@ const generateCertificate = async (
     const generalFontBoldBytes = await fsp.readFile(generalFontBoldPath);
     const generalFontBold = await pdfDoc.embedFont(generalFontBoldBytes);
 
+    const littleGeneralFontSize = 13;
+
     // Name ot the student
-    // drawTextP({
-    //     page,
-    //     text: studentName,
-    //     x: 200,
-    //     y: 350,
-    //     font: principalTextFont,
-    //     size: 36,
-    //     color: rgb(0.1, 0.1, 0.1),
-    //     is_centered: true
-    // });
+    drawTextP({
+        page,
+        text: studentName,
+        x: 200,
+        y: 345,
+        font: principalTextFont,
+        size: 36,
+        color: rgb(0.1, 0.1, 0.1),
+        is_centered: true
+    });
 
     // Type 
-    courseType = 'curso';
     drawTextP({
         page,
         text: courseType.toLowerCase(),
-        x: 480,
-        y: 296,
+        x: 473,
+        y: 302.5,
         font: generalFont,
-        size: 21,
+        size: 19,
         color: rgb(0.1, 0.1, 0.1),
         is_centered: false
     });
 
     // Course name
-    // drawTextP({
-    //     page,
-    //     text: courseName.toUpperCase(),
-    //     y: 268,
-    //     font: generalFontBold,
-    //     size: 19,
-    //     color: rgb(0.1, 0.1, 0.1),
-    //     is_centered: true
-    // });
-
-    // Operational unit - first part - 26 words
-
-    // if(operationalUnit.length() > 40){
-    //     throw new Error("El nombre de la unidad operativo excede el espacio de la plantilla.");
-    // }
-
-    // for (let i = 0; i < operationalUnit.length; i++) {
-    //     if(i <= 26){
-    //         operationalUnitFirstPart = operationalUnit[i];
-    //     } else {
-    //         operationalUnitSecondPart = operationalUnit[i];
-    //     }
-
-    // }
-
     drawTextP({
         page,
-        text: 'Departamento de Ingeniería',
-        x: 518,
-        y: 238,
+        text: courseName.toUpperCase(),
+        y: 270,
         font: generalFontBold,
-        size: 21,
+        size: 19,
+        color: rgb(0.1, 0.1, 0.1),
+        is_centered: true
+    });
+
+    // Operational unit 
+    drawTextP({
+        page,
+        text: operationalUnit,
+        x: 473,
+        y: 244,
+        font: generalFontBold,
+        size: 19,
         color: rgb(0,0,0),
         is_centered: false
     });
 
-    // Operational unit - second part - 16 words
+    // Duration in hours
     drawTextP({
         page,
-        text: 'Química',
-        x: 60,
-        y: 209,
+        text: durationInHours + ' horas.',
+        x: 540,
+        y: 215,
         font: generalFontBold,
-        size: 21,
+        size: 19,
         color: rgb(0,0,0),
         is_centered: false
     });
-
-    // // Duration in hours
-    // drawTextP({
-    //     page,
-    //     text: durationInHours + ' horas.',
-    //     x: 710,
-    //     y: 209,
-    //     font: generalFontBold,
-    //     size: 21,
-    //     color: rgb(0,0,0),
-    //     is_centered: false
-    // });
 
     // Issue Date
     drawTextP({
         page,
-        text: 'el 30 de mayo del año 2025.',
-        x: 515,
+        text: 'el ' + dateInLetters + '.',
+        x: 510,
         y: 170,
         font: generalFont,
         size: 20,
@@ -149,82 +124,73 @@ const generateCertificate = async (
         is_centered: false
     });
 
-    // drawTextCenteredInLine({
-    //     page,
-    //     texts: signers,
-    //     y,
-    //     font: generalFont,
-    //     size: 13,
-    //     color: rgb(0,0,0),
-    // })
+    // Logo
+    for (const logo of logos) {
+        if(logo.logoOrder == 1){
+            await drawImageP({
+                pdfDoc,
+                page,
+                imagePath: logo.URL,
+                x: 82,
+                y: 503, 
+                height: 71.28
+            });
+        }
+    }
 
-    // x = 150;
-    // signers.map((signer) => {
+    // Signers
+    // Signatures images
+    const signatureImages = signers.filter(signer => signer.urlSignature).map(signer => ({
+        path: signer.urlSignature,
+        height: 55 // Fixed height for all
+    }));
 
-    //     y = 75;
-    //     // signer info
-    //     drawTextP({
-    //         page,
-    //         text: signer.name,
-    //         x,
-    //         y,
-    //         font: generalFont,
-    //         size: 13,
-    //         color: rgb(0,0,0),
-    //         is_centered: false
-    //     });
+    if (signatureImages.length > 0) {
+        await drawImagesInLine({
+            pdfDoc,
+            page,
+            spacing: 200,
+            images: signatureImages,
+            y: 90
+        });
+    }
 
-    //     signer.titles.map((title) => {
-    //         y = y - 13;
+    // Signers info
+    const columnWidth = 227.91;
+    let xStart = 125;
+    const yStart = 65;
+    const lineSpacing = 15;
+    const space = 140; // space between lines
 
-    //         drawTextP({
-    //             page,
-    //             text: title,
-    //             x,
-    //             y: y,
-    //             font: generalFont,
-    //             size: 13,
-    //             color: rgb(0,0,0),
-    //             is_centered: false
-    //         });
-    //     })
+    signers.forEach((signer, index) => {
+        const x1 = xStart + index * columnWidth;
+        const x2 = x1 + columnWidth;
 
-    //     x = 500;
-    // })
+        drawTextColumnCentered({
+            page,
+            texts: signer.text,
+            font: generalFont,
+            size: littleGeneralFontSize,
+            color: rgb(0,0,0),
+            x1,
+            x2,
+            yStart,
+            lineSpacing
+        });
+
+        xStart = xStart + space;
+
+    });
         
     // Save PDF
     const pdfBytes = await pdfDoc.save();
 
-    const savePath = path.resolve(__dirname, '../../assets/generated/constPartFacuInge01Generated.pdf');
+    const savePath = path.resolve(__dirname, `../../assets/generated/${studentDNI}constPartFacuInge01Generated.pdf`);
     fs.writeFileSync(savePath, pdfBytes);
 
-    console.log('✅ Certificado generado en /generated');
+    console.log(`✅ CPFI de ${studentDNI} generado en /generated`);
 }
 
-// Skills should be less than 25 characters
-const signers = [
-    {
-        "name": "MSc. Guadalupe Nuñez Salgado",
-        "titles": [
-            "Coordinadora Académica",
-            "Coordinadora de Vinculación ",
-            "Facultad de Ingeniería"
-        ]
-    },
-    {
-        "name": "MSc. Jorge Maynor Vargas",
-        "titles": [
-            "Coordinador del curso de Inocuidad de alimentos",
-            "Docente del Departamento de Ingeniería Química",
-            "Facultad de Ingeniería"
-        ]
-    }
-]
-
-generateCertificate('Denisse Hernandez', 'inocuidad de los alimentos', signers,  40, 'curso')
-  .then(() => console.log('✅ Certificado generado exitosamente.'))
-  .catch((err) => console.error('❌ Error generando certificado:', err));
-
-  module.exports = {
+module.exports = {
     generateCertificate
-  }
+}
