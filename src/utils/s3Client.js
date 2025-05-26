@@ -32,34 +32,40 @@ const getPublicUrl = (filePath) => {
 * @param {*} isPrivate 
 * @returns 
 */
-const uploadFileToS3 = async (filePath, file, isPrivate) => {
+const uploadFileToS3 = async (filePath, fileContent, isPrivate = false) => {
 
-    const stream = fs.createReadStream(file.tempFilePath);
+    // Deternime content type
+    const body = Buffer.isBuffer(fileContent) || fileContent instanceof Uint8Array 
+        ? fileContent 
+        : fs.createReadStream(fileContent);
 
-    // Obtener la extensión del archivo original
-    const originalExt = path.extname(file.name || '');
-
-    // Agregarla si no está presente en el filePath
-    if (!path.extname(filePath) && originalExt) {
-        filePath += originalExt;
+    // Adding extension
+    if (!filePath.endsWith('.pdf')) {
+        filePath += '.pdf';
     }
 
+    // s3 parameters
     const uploadParams = {
         Bucket: s3Config.bucketName,
         Key: filePath,
-        Body: stream
+        Body: body,  // Buffer/Uint8Array or Stream
+        ContentType: 'application/pdf'
     };
 
-    const command = new PutObjectCommand(uploadParams); 
-    await client.send(command);
-    console.log('File uploaded successfully');
+    try {
+        // Uploading to S3
+        const command = new PutObjectCommand(uploadParams);
+        await client.send(command);
+        console.log(`PDF subido a: ${filePath}`);
 
-    if (isPrivate === 'true') {
-        return "Solo se podrá acceder a este archivo mediante una URL prefirmada.";
+        return isPrivate ? "URL privada requerida" : getPublicUrl(filePath);
+
+    } catch (error) {
+        console.error('Error al subir a S3:', error);
+        throw new Error('Error al subir archivo a S3');
     }
 
-    return getPublicUrl(filePath);
-}
+};
 
 
 /**

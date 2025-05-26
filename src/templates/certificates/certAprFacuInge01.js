@@ -226,10 +226,12 @@ const generateCertificate = async ({
     // Save PDF
     const pdfBytes = await pdfDoc.save();
 
-    const savePath = path.resolve(__dirname, `../../assets/new/${studentDNI}_certAprFacuInge01Generated.pdf`);
-    fs.writeFileSync(savePath, pdfBytes);
-
     console.log(`✅ CAFI de ${studentDNI} generado en /new`);
+
+    return {
+        pdfBytes,
+        fileName: `${studentDNI}.pdf`
+    }
 }
 
   module.exports = {

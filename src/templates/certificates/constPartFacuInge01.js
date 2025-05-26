@@ -181,14 +181,18 @@ const generateCertificate = async ({
         xStart = xStart + space;
 
     });
+
+    console.log(`✅ CPFI de ${studentDNI} generado en /generated`);
         
     // Save PDF
     const pdfBytes = await pdfDoc.save();
 
-    const savePath = path.resolve(__dirname, `../../assets/generated/${studentDNI}constPartFacuInge01Generated.pdf`);
-    fs.writeFileSync(savePath, pdfBytes);
+    console.log(`✅ CAFI de ${studentDNI} generado en /new`);
 
-    console.log(`✅ CPFI de ${studentDNI} generado en /generated`);
+    return {
+        pdfBytes,
+        fileName: `${studentDNI}.pdf`
+    }
 }
 
 module.exports = {

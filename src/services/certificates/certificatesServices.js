@@ -1,4 +1,4 @@
-const certificateModel = require('../../models/certificates/certificateModel.js');
+const certificateModel = require('../../models/certificates/CertificateModel.js');
 const certificateTypeModel = require('../../models/certificate_types/CertificateTypeModel.js');
 const certificateLogoModel = require('../../models/logos/CertificateLogoModel.js');
 const courseModel = require('../../models/courses/courseModel.js');
@@ -10,6 +10,8 @@ const templateMapper = require('../../templates/templateMapper.js');
 const path = require('path');
 const { getActualDateInLetters } = require('../../utils/dateManager.js');
 const { generateQRCode, extractBase64 } = require('../../utils/qrcodeManager.js');
+const { uploadFileToS3 } = require('../../utils/s3Client.js');
+const { saveMedia } = require('../../models/media/MediaModel.js');
 
 class CertificateServices {
 
@@ -62,7 +64,7 @@ class CertificateServices {
                     let uniqueCode = this.generateCertificateCode(courseInfo.certifyingOpUnitId, courseNameAbb, issueDate, correlative);
 
                     try {
-                        await generate({
+                        let file = await generate({
                             templatePath: templateConfig.defaultTemplateUrl,
                             studentDNI: enroll.studentDNI,
                             studentName: enroll.studentName, 
@@ -76,16 +78,27 @@ class CertificateServices {
                             signers,
                             qrBase64: qrCode,
                             uniqueCode
-                        })
-
-                        generated[templateKey].push({ student: enroll.studentDNI });
+                        });
 
                         // Guardar certificado en S3
+                        let fileURL = await uploadFileToS3(
+                            `courses/${courseInfo.courseName}/${templateKey}/${file.fileName}`, 
+                            file.pdfBytes, 
+                            false
+                        );
+
+                        // Guardar URL en Media
+                        let  media = await saveMedia(file.fileName, fileURL, 5, `${templateKey} de ${enroll.studentDNI}.`)
 
                         // Guardar certificado en base de datos
+                        let result = await this.certificateModel.saveCertificate(enroll.enrollmentId, uniqueCode, media.mediaId, 1, templateKey);
+                        console.log(result);
 
+                        // Pendiente 
                         // Actualizar cantidad de certificados emitidos por unidad certificadora
+                        // Logica para evitar duplicidad
 
+                        generated[templateKey].push({ student: enroll.studentDNI });
                         correlative ++;
 
                     } catch (error) {
@@ -94,7 +107,7 @@ class CertificateServices {
                             studentDni: enroll.studentDNI,
                             error: error.message
                         });
-                        
+
                         console.log(error);
                     }
                 }

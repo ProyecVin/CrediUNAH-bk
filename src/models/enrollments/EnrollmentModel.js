@@ -7,6 +7,7 @@ class EnrollmentModel {
             const pool = await getConnection();
             const result = await pool.request().query(`
                 SELECT 
+                    E.ID AS enrollmentId,
                     U.ID AS studentDNI, 
                     U.FULL_NAME AS studentName,
                     ES.ID AS statusId,
