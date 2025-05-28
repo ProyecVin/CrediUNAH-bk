@@ -1,6 +1,19 @@
-const { getConnection, sql } = require('../../config/awsDB');
+// src/models/operational/Courses.js
+const sql = require('mssql');
+const config = require('../../config/database');
 
 class CourseModel {
+
+    getCoursesForLanding = async () => {
+        try {
+            const pool = await sql.connect(config);
+            const result = await pool.request()
+                .execute('linkage.get_courses_for_landing'); // Llamamos al procedimiento almacenado
+            return result.recordset; // Devuelve array de cursos para landing
+        } catch (err) {
+            throw err;
+        }
+    }
 
     getCourseInfoForCertificates = async (courseId) => {  
         try {
@@ -39,6 +52,7 @@ class CourseModel {
             return error;
         }
     }
+
 }
 
 module.exports = new CourseModel();

@@ -1,5 +1,5 @@
 // src/Controllers/operational/courses.js
-const CoursesModel = require('../models/course/Courses');
+const CoursesModel = require('../../models/courses/courseModel');
 
 class CoursesController {
     async getCoursesForLanding(req, res) {
