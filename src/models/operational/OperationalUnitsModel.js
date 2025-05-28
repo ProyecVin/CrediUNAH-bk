@@ -1,15 +1,9 @@
-//const supabase = require('../config/supabase');
-// src/models/OperatinalUnits.js
 const sql = require('mssql');
-const config = require('../../config/database')
 const config = require('../../config/awsDB')
 
 
 
 class OperationalUnitsModel {
-    
-  
-
     async getAllOperationalUnits() {
       try {
         const pool = await sql.connect(config);
@@ -22,4 +16,4 @@ class OperationalUnitsModel {
     }
   }
   
-  module.exports = new UserOperationalUnitsModel();
+  module.exports = new OperationalUnitsModel();
