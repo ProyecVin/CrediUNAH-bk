@@ -36,6 +36,7 @@
 =======
 >>>>>>> origin/feature/andree/20250517/courses
     "qrcode": "1.5.4",
+    "utils-merge": "^1.0.1",
     "validator": "13.15.0"
   },
   "devDependencies": {

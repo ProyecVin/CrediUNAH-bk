@@ -1,5 +1,5 @@
 //src/Controllers/operationalUnits.js
-const OperationalUnitsModel = require ('../../models/operational/OperationalUnitsModel');
+const OperationalUnitsModel = require ('../../models/operational/OperationalUnitsModel.js');
 
 class OperationalUnitsController {
 

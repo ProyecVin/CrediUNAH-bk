@@ -1,8 +1,6 @@
 const sql = require('mssql');
 const config = require('../../config/awsDB')
 
-
-
 class OperationalUnitsModel {
     async getAllOperationalUnits() {
       try {
@@ -15,5 +13,5 @@ class OperationalUnitsModel {
       }
     }
   }
-  
-  module.exports = new OperationalUnitsModel();
+
+module.exports = new OperationalUnitsModel();
