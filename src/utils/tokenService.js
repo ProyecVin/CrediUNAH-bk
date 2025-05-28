@@ -4,11 +4,11 @@ const { createToken, verifyToken } = require('../config/jwt');
 // Generar token JWT para el usuario
 function generateUserToken(userData) {
   const payload = {
-    id: userData.id,
-    email: userData.correo,
-    nombre: userData.nombre,
-    apellido: userData.apellido,
-    rol: userData.rol_nombre
+   
+    id: userData.user_id,
+    email: userData.email,
+    full_name: userData.full_name,
+    rol: userData.role_name,
   };
   
   return createToken(payload);
