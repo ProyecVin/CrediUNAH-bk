@@ -1,6 +1,6 @@
 // src/controllers/operational/CoursesController.js
 const CoursesAdminModel = require('../../models/courses/CoursesAdminModel');
-const CoursesModel = require('../../models/courses/CourseModel');
+const CoursesModel = require('../../models/courses/courseModel');
 
 class CoursesAdminController {
     async getCoursesForAdmin(req, res) {
