@@ -15,6 +15,7 @@ const test = require('./routes/test.router.js');
 const req = require('express/lib/request.js');
 
 const app = express();
+const port = process.env.PORT || 3000;
 
 getConnection();
 
@@ -38,8 +39,7 @@ app.use('/test', test);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
-  
-const port = process.env.PORT || 3000;
+
 
 // Ruta principal de que funciona el backend
 app.get('/', (req, res) => {
