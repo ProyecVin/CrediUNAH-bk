@@ -1,5 +1,6 @@
 // src/controllers/operational/CoursesController.js
 const CoursesAdminModel = require('../../models/courses/CoursesAdminModel');
+const CoursesModel = require('../../models/course/CoursesModel');
 
 class CoursesAdminController {
     async getCoursesForAdmin(req, res) {
@@ -10,6 +11,20 @@ class CoursesAdminController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    async updateCourse(req, res) {
+        try {
+            const courseData = req.body;
+            const result = await CoursesModel.updateCourse(courseData);
+            res.json({ message: 'Curso actualizado exitosamente', result });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
 }
 
 module.exports = new CoursesAdminController();
+
+
+  
