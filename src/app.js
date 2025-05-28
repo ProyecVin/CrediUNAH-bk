@@ -40,7 +40,6 @@ app.use('/test', test);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-
 // Ruta principal de que funciona el backend
 app.get('/', (req, res) => {
   res.json({ message: 'Backend funcionando correctamente' });
