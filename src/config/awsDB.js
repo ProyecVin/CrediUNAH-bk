@@ -32,7 +32,7 @@ poolConnect
     sql,
     getConnection: async () => {
       if (poolConnect) {
-        return pool;
+        return poolConnect;
       }
       throw new Error('No se pudo establecer la conexión a la base de datos');
     },

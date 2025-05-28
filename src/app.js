@@ -8,7 +8,7 @@ const { notFoundHandler, errorHandler } = require('./utils/errorHandler');
 const { conectarDB, getConnection } = require('./config/awsDB');
 
 require('dotenv').config();
-require('./services/s3.service.js');
+require('./utils/s3Client.js');
 
 const routes = require('./routes');
 const usuarios = require('./routes/routes.js');
@@ -31,19 +31,16 @@ app.use((fileUpload({
 
 app.use('/api', routes);
 
-
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
-
-app.use(morgan('dev')); // Show the logs in the console
 
 app.use('/api', usuarios);
 app.use('/test', test);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
-
+  
 const port = process.env.PORT || 3000;
 
 // Ruta principal de que funciona el backend
@@ -62,7 +59,6 @@ process.on('SIGINT', async () => {
   await closePool();
     
   process.exit(0);
-}
+});
 
-);
 module.exports = app;
