@@ -1,5 +1,4 @@
 const { getConnection, sql } = require('../../config/awsDB');
-const sql = require('mssql');
 const config = require('../../config/awsDB');
 
 class EnrollmentModel {
