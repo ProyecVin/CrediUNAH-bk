@@ -11,7 +11,6 @@ require('dotenv').config();
 require('./utils/s3Client.js');
 
 const routes = require('./routes');
-const usuarios = require('./routes/routes.js');
 const test = require('./routes/test.router.js');
 const req = require('express/lib/request.js');
 
@@ -35,7 +34,6 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-app.use('/api', usuarios);
 app.use('/test', test);
 
 app.use(notFoundHandler);
