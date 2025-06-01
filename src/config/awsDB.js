@@ -28,7 +28,7 @@ poolConnect
     console.error('Error al conectar a la base de datos:', err);
   });
 
-  module.exports = {
+  const db  = {
     sql,
     getConnection: async () => {
       if (poolConnect) {
@@ -46,3 +46,4 @@ poolConnect
       }
     }
   };
+module.exports = db;

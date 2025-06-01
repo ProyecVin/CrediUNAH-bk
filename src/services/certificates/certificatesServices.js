@@ -1,17 +1,17 @@
-const certificateModel = require('../../models/certificates/CertificateModel.js');
-const certificateTypeModel = require('../../models/certificate_types/CertificateTypeModel.js');
-const certificateLogoModel = require('../../models/logos/CertificateLogoModel.js');
+const certificateModel = require('../../models/certificates/certificateModel');
+const certificateTypeModel = require('../../models/certificate_types/CertificateTypeModel');
+const certificateLogoModel = require('../../models/logos/CertificateLogoModel');
 const courseModel = require('../../models/courses/courseModel.js');
-const enrollmentModel = require('../../models/enrollments/EnrollmentModel.js')
-const signatureModel = require('../../models/signatures/SignatureModel.js');
+const enrollmentModel = require('../../models/enrollments/EnrollmentModel')
+const signatureModel = require('../../models/signatures/SignatureModel');
 
-const templateMapper = require('../../templates/templateMapper.js');
+const templateMapper = require('../../templates/templateMapper');
 
 const path = require('path');
-const { getActualDateInLetters } = require('../../utils/dateManager.js');
-const { generateQRCode, extractBase64 } = require('../../utils/qrcodeManager.js');
-const { uploadFileToS3 } = require('../../utils/s3Client.js');
-const { saveMedia } = require('../../models/media/MediaModel.js');
+const { getActualDateInLetters } = require('../../utils/dateManager');
+const { generateQRCode, extractBase64 } = require('../../utils/qrcodeManager');
+const { uploadFileToS3 } = require('../../utils/s3Client');
+const { saveMedia } = require('../../models/media/MediaModel');
 
 class CertificateServices {
 
