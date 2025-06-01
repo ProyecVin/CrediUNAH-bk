@@ -1,5 +1,5 @@
-const s3Manager = require('../utils/s3Client.js');
-const QRCodeManager = require('../utils/qrcodeManager.js');
+const s3Manager = require('../utils/s3Client');
+const QRCodeManager = require('../utils/qrcodeManager');
 
 class TestController {
   constructor() {
