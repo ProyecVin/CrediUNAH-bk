@@ -29,6 +29,23 @@ class SignatureModel {
         }
     }
 
+    isPhysicallySigned = async (courseId, certificateTypeId) => {
+         try {
+            const pool = await getConnection();
+            const result = await pool.request()
+            .query(`SELECT 
+                        is_physically_signed 
+                    FROM LINKAGE.COURSE_CERTIFICATE_TYPES CCT
+                    WHERE CCT.COURSE_ID = ${courseId} AND CCT.CERTIFICATE_TYPE_ID = '${certificateTypeId}'
+            `);
+
+            return result.recordset;        
+            
+        } catch (error) {
+            return error;
+        }
+    }
+
 }
 
 module.exports = new SignatureModel();
