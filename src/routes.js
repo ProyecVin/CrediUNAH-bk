@@ -11,6 +11,7 @@ const postCourseRoutes = require('./routes/postCourseRoutes');
 const courseAdminRoutes = require('./routes/coursesAdminRoutes');
 const enrollmentsRoutes = require('./routes/enrollmentsRoutes');
 const signatureRoutes = require('./routes/signatureRoutes');
+const certificatesUserRoutes = require('./routes/certificatesIdRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/courses', coursesRoutes); 
@@ -23,6 +24,8 @@ router.use('/signatures', signatureRoutes);
 router.use('/post', postCourseRoutes); 
 router.use('/courses', courseAdminRoutes); // Este puede ir dentro de las rutas de courses -----
 router.use('/enrollments', enrollmentsRoutes);
+router.use('/certificates', certificatesUserRoutes);
+
 
 module.exports = router;
 
