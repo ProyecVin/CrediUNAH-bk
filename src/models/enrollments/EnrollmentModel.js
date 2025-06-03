@@ -25,6 +25,30 @@ class EnrollmentModel {
         }
     }
 
+    getAllCourseEnrollmentsForAdmin = async (courseId) => {  
+        try {
+            const pool = await getConnection();
+            const result = await pool.request().query(`
+                SELECT 
+                    ROW_NUMBER() OVER (ORDER BY U.FULL_NAME) AS no,
+                    E.ID AS enrollmentId,
+                    U.ID AS sIdentity, 
+                    U.FULL_NAME AS name,
+                    ES.ID AS statusId,
+                    ES.NAME AS obs,
+                    E.grade
+                FROM 
+                    LINKAGE.COURSE_ENROLLMENTS E
+                    LEFT JOIN LINKAGE.USERS U ON (U.ID = E.STUDENT_ID)
+                    LEFT JOIN LINKAGE.ENROLLMENT_STATUS ES ON (ES.ID = E.STATUS_ID)
+                WHERE E.COURSE_ID = ${courseId}
+            `);
+            return result.recordset;        
+        } catch (error) {
+            return error;
+        }
+    }
+
     async upsertGrade({ student_id, course_id, grade, comments }) {
     try {
       const pool = await sql.connect(config);

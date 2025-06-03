@@ -8,10 +8,12 @@ const signatureModel = require('../../models/signatures/SignatureModel.js');
 const templateMapper = require('../../templates/templateMapper.js');
 
 const path = require('path');
-const { getActualDateInLetters } = require('../../utils/dateManager.js');
+const { getDateInLetters } = require('../../utils/dateManager.js');
 const { generateQRCode, extractBase64 } = require('../../utils/qrcodeManager.js');
 const { uploadFileToS3 } = require('../../utils/s3Client.js');
 const { saveMedia } = require('../../models/media/MediaModel.js');
+
+const fs = require('fs');
 
 class CertificateServices {
 
@@ -42,6 +44,11 @@ class CertificateServices {
                 const certificateType = certificate.certificateType;
                 const templateKey = certificateType.certificateTypeId;
 
+                // Linea temporal para omitir los cetificados de aprobacion de momento
+                if (templateKey === 'CAFI01') {
+                    continue;
+                }
+
                 if (!templateMapper[templateKey]) {
                     console.warn(`No hay plantilla configurada para: ${templateKey}`);
                     continue;
@@ -51,6 +58,9 @@ class CertificateServices {
                 const generate = templateConfig.generate;
 
                 const signers = this.parseSigners(certificate.signatures);
+
+                const is_physically_signed = await this.signatureModel.isPhysicallySigned(courseId, templateKey);
+                console.log(is_physically_signed[0].is_physically_signed);
 
                 // Inicializar arrays si no existen para ese tipo de certificado
                 if (!generated[templateKey]) generated[templateKey] = [];
@@ -72,27 +82,33 @@ class CertificateServices {
                             courseName: courseInfo.courseName, 
                             operationalUnit: courseInfo.operationalUnitName, 
                             durationInHours: courseInfo.durationInHours, 
-                            dateInLetters: getActualDateInLetters(issueDate),
+                            dateInLetters:  getDateInLetters(new Date('2025-05-30')),// getDateInLetters(issueDate),
                             courseType: courseInfo.courseTypeName,
                             logos: certificate.logos,
                             signers,
                             qrBase64: qrCode,
-                            uniqueCode
+                            uniqueCode,
+                            is_physically_signed: is_physically_signed[0].is_physically_signed,
+                            startDate: courseInfo.startDate,
+                            endDate: courseInfo.endDate
                         });
 
+                        const localPath = path.join(__dirname, './diplomas_inocuidad', file.fileName);
+                        fs.writeFileSync(localPath, file.pdfBytes);
+
                         // Guardar certificado en S3
-                        let fileURL = await uploadFileToS3(
-                            `courses/${courseInfo.courseName}/${templateKey}/${file.fileName}`, 
-                            file.pdfBytes, 
-                            false
-                        );
+                        // let fileURL = await uploadFileToS3(
+                        //     `courses/${courseInfo.courseName}/${templateKey}/${file.fileName}`, 
+                        //     file.pdfBytes, 
+                        //     false
+                        // );
 
-                        // Guardar URL en Media
-                        let  media = await saveMedia(file.fileName, fileURL, 5, `${templateKey} de ${enroll.studentDNI}.`)
+                        // // Guardar URL en Media
+                        // let  media = await saveMedia(file.fileName, fileURL, 5, `${templateKey} de ${enroll.studentDNI}.`)
 
-                        // Guardar certificado en base de datos
-                        let result = await this.certificateModel.saveCertificate(enroll.enrollmentId, uniqueCode, media.mediaId, 1, templateKey);
-                        console.log(result);
+                        // // Guardar certificado en base de datos
+                        // let result = await this.certificateModel.saveCertificate(enroll.enrollmentId, uniqueCode, media.mediaId, 1, templateKey);
+                        // console.log(result);
 
                         // Pendiente 
                         // Actualizar cantidad de certificados emitidos por unidad certificadora

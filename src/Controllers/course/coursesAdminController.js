@@ -12,6 +12,28 @@ class CoursesAdminController {
         }
     }
 
+    async getCourseInfoForAdmin(req, res) {
+        try {
+            if(req.params.id === 'undefined') {
+                return res.status(400).json({ error: 'ID del curso no proporcionado' });
+            }
+            
+            const result = await CoursesAdminModel.getCourseInfoForAdmin(req.params.id);
+
+            res.send({
+                success: true,
+                message: 'Información del curso obtenida exitosamente',
+                result: result[0]
+            })
+
+        } catch (error) {
+            res.status(500).json({ 
+                success: false,
+                error: error.message 
+            });
+        }
+    }
+
     async updateCourse(req, res) {
         try {
             const courseData = req.body;
