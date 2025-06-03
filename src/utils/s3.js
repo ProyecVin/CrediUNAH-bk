@@ -28,7 +28,7 @@ async function uploadFileToS3(fileBuffer, originalName, folder = 'courses') {
     Key,
     Body: fileBuffer,
     ContentType: ext === '.png' ? 'image/png' : 'image/jpeg',
-    ACL: 'public-read',
+    
   }));
 
   return `https://${s3Config.bucketName}.s3.${s3Config.region}.amazonaws.com/${Key}`;

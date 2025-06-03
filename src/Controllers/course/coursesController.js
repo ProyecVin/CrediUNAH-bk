@@ -71,3 +71,13 @@ exports.deleteCourse = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+
+exports.getInactiveCourses = async (_req, res) => {
+  try {
+    const courses = await courseModel.getInactiveCourses();
+    res.status(200).json(courses);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

@@ -1,4 +1,4 @@
-// File: src/routes/coursesRoutes.js
+// src/middleware/multer.js
 const multer = require('multer');
 const path = require('path');
 

@@ -1,3 +1,4 @@
+// src/app.js
 const express = require('express');
 const cors = require('cors');
 const fileUpload = require("express-fileupload");
@@ -30,12 +31,12 @@ app.use(helmet());
 
 app.use('/api', express.json(), routes);
 
-app.use((fileUpload({
+/*app.use((fileUpload({
   useTempFiles: true,
   tempFileDir: './uploads',
-})));
+})));*/
 
-app.use('/api/courses', coursesRoutes);
+app.use('/courses', coursesRoutes);
 
 
 

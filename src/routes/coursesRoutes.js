@@ -10,6 +10,7 @@ const upload = require('../middleware/multer');
 router.post('/new', auth, upload.single('image'), coursesController.createCourse);
 router.put('/:id/', auth, upload.single('image'), coursesController.updateCourse);
 router.get('/landing', coursesController.getCourses);
-router.get('/:id', auth, coursesController.deleteCourse);
+router.delete('/:id', auth, coursesController.deleteCourse);
+router.get('/inactive', auth, coursesController.getInactiveCourses);
 
 module.exports = router;
