@@ -19,7 +19,8 @@ const generateCertificate = async ({
     logos,
     signers,
     qrBase64,
-    uniqueCode
+    uniqueCode,
+    is_physically_signed
 }) => {
         
     let templateBytes;

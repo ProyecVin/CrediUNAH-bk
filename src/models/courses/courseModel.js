@@ -1,6 +1,6 @@
 // src/models/operational/Courses.js
 const sql = require('mssql');
-const config = require('../../config/database');
+const { getConnection } = require('../../config/awsDB');
 
 class CourseModel {
 
@@ -55,6 +55,8 @@ class CourseModel {
                     C.DESCRIPTION AS description, 
                     C.DURATION_IN_HOURS AS durationInHours, 
                     C.SKILLS AS skills,
+                    C.START_DATE AS startDate,
+                    C.END_DATE AS endDate,
                     OU.ID AS operationalUnitId, 
                     OU2.ID AS certifyingOpUnitId,
                     OU.NAME AS operationalUnitName,
@@ -76,7 +78,9 @@ class CourseModel {
                     FROM LINKAGE.COURSE_STATUS_HISTORY
                     WHERE COURSE_ID = ${courseId}
                 );`);
+
             return result.recordset;        
+
         } catch (error) {
             return error;
         }

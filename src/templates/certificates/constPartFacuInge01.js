@@ -3,7 +3,8 @@ var fontkit = require('fontkit');
 const fs = require('fs');
 const path = require('path');
 const fsp = require('fs/promises');
-const { drawTextP, drawImageP, drawImagesInLine, generatePDFGridLayout, drawTextColumnCentered } = require('../../utils/pdfGenerator'); 
+const { drawTextP, drawImageP, drawImagesInLine, generatePDFGridLayout, drawTextColumnCentered, drawParagraph, toBoldFormat } = require('../../utils/pdfGenerator'); 
+const { formatDateToDayMonthInLetters } = require('../../utils/dateManager');
 
 generatePDFGridLayout(
     path.resolve(__dirname, '../../assets/templates/constPartFacuInge01.pdf'),  
@@ -23,11 +24,17 @@ const generateCertificate = async ({
     logos,
     signers,
     qrBase64,
-    uniqueCode
+    uniqueCode,
+    is_physically_signed,
+    startDate,
+    endDate
 }) => {
     // Read template
     templatePath = path.resolve(__dirname, "../../assets/templates/constPartFacuInge01.pdf");
     const templateBytes = fs.readFileSync(templatePath);
+
+    // dibujar cuadricula
+    await generatePDFGridLayout(templatePath, path.resolve(__dirname, '../../assets/generated/constPartFacuInge01Grid.pdf'));
 
     // Document
     const pdfDoc = await PDFDocument.load(templateBytes);
@@ -58,7 +65,7 @@ const generateCertificate = async ({
         page,
         text: studentName,
         x: 200,
-        y: 345,
+        y: 340,
         font: principalTextFont,
         size: 36,
         color: rgb(0.1, 0.1, 0.1),
@@ -68,13 +75,12 @@ const generateCertificate = async ({
     // Type 
     drawTextP({
         page,
-        text: courseType.toLowerCase(),
-        x: 473,
+        text: `Por haber participado en el ${courseType.toLowerCase()}:`,
         y: 302.5,
         font: generalFont,
         size: 19,
         color: rgb(0.1, 0.1, 0.1),
-        is_centered: false
+        is_centered: true
     });
 
     // Course name
@@ -88,40 +94,33 @@ const generateCertificate = async ({
         is_centered: true
     });
 
-    // Operational unit 
-    drawTextP({
-        page,
-        text: operationalUnit,
-        x: 473,
-        y: 244,
-        font: generalFontBold,
-        size: 19,
-        color: rgb(0,0,0),
-        is_centered: false
-    });
-
-    // Duration in hours
-    drawTextP({
-        page,
-        text: durationInHours + ' horas.',
-        x: 540,
-        y: 215,
-        font: generalFontBold,
-        size: 19,
-        color: rgb(0,0,0),
-        is_centered: false
-    });
+    // Paragraph
+    drawParagraph(
+        { 
+        page, 
+        font: generalFont, 
+        boldFont: generalFontBold,
+        text: `Impartido por la **Facultad** **de** **Ingeniería**, a través del ${toBoldFormat(operationalUnit)} y 
+                la **Coordinación** **de** **Vinculación**, del ${toBoldFormat(formatDateToDayMonthInLetters(startDate))} 
+                **al** ${toBoldFormat(formatDateToDayMonthInLetters(endDate))} con una duración total de **40** **horas.**`, 
+        x1: 60,
+        x2: 775, 
+        y: 242, 
+        fontSize: 19, 
+        lineHeight: 1.3, 
+        center: false }
+    );
 
     // Issue Date
     drawTextP({
         page,
-        text: 'el ' + dateInLetters + '.',
-        x: 510,
-        y: 170,
+        text: `Dado en Ciudad Universitaria, Tegucigalpa, MDC, el ${dateInLetters}.`,
+        // x: 510,
+        y: 158,
         font: generalFont,
-        size: 20,
+        size: 19,
         color: rgb(0,0,0),
-        is_centered: false
+        is_centered: true
     });
 
     // Logo
@@ -131,9 +130,10 @@ const generateCertificate = async ({
                 pdfDoc,
                 page,
                 imagePath: logo.URL,
-                x: 82,
-                y: 503, 
-                height: 71.28
+                x: 273,
+                y: 508, 
+                height: 60,
+                grayscale: true
             });
         }
     }
@@ -145,7 +145,7 @@ const generateCertificate = async ({
         height: 55 // Fixed height for all
     }));
 
-    if (signatureImages.length > 0) {
+    if (signatureImages.length > 0 && is_physically_signed) {
         await drawImagesInLine({
             pdfDoc,
             page,
@@ -157,10 +157,10 @@ const generateCertificate = async ({
 
     // Signers info
     const columnWidth = 227.91;
-    let xStart = 125;
+    let xStart = 158;
     const yStart = 65;
     const lineSpacing = 15;
-    const space = 140; // space between lines
+    const space = 90; // space between lines
 
     signers.forEach((signer, index) => {
         const x1 = xStart + index * columnWidth;

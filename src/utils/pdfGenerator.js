@@ -4,37 +4,43 @@ const fsp = require('fs/promises');
 const path = require('path');
 const { default: isURL } = require('validator/lib/isURL');
 const axios = require('axios');
+const sharp = require('sharp');
+const fontkit = require('@pdf-lib/fontkit');
 
 /**
  * Draw an image in document
  * @param {*} param0 
  */
-const drawImageP = async ({ pdfDoc, page, imagePath, x, y, height }) => {
-    
+const drawImageP = async ({ pdfDoc, page, imagePath, x, y, height, grayscale = false }) => {
     let imageBytes;
+
     try {
-        // Get image bytes
+        // Obtener bytes de imagen
         if (isURL(imagePath)) {
             const response = await axios.get(imagePath, { 
                 responseType: 'arraybuffer',
-                headers: { 'Accept': 'image/png,image/jpeg' } // Fuerza tipo de imagen
+                headers: { 'Accept': 'image/png,image/jpeg' }
             });
             imageBytes = response.data;
         } else {
             imageBytes = fs.readFileSync(imagePath);
         }
 
-        // Detect format
+        // Convertir a blanco y negro si se solicita
+        if (grayscale) {
+            imageBytes = await sharp(imageBytes)
+                        .grayscale()
+                        .toBuffer();
+        }
+
+        // Detectar formato real o forzar PNG si se procesó
         let image;
         const byteSignature = imageBytes.slice(0, 4).toString('hex');
-
-        // PNG: \x89PNG | JPG: \xff\xd8\xff\xe0
-        if (byteSignature.startsWith('89504e47') || imagePath.includes('-png')) {
+        if (byteSignature.startsWith('89504e47') || grayscale) {
             image = await pdfDoc.embedPng(imageBytes);
         } else if (byteSignature.startsWith('ffd8ffe0') || imagePath.includes('.jpg')) {
             image = await pdfDoc.embedJpg(imageBytes);
         } else {
-            // Automatic
             try {
                 image = await pdfDoc.embedPng(imageBytes);
             } catch {
@@ -42,10 +48,11 @@ const drawImageP = async ({ pdfDoc, page, imagePath, x, y, height }) => {
             }
         }
 
+        // Escalado
         const scale = height / image.height;
         const width = image.width * scale;
 
-        // Drawing
+        // Dibujar en el PDF
         page.drawImage(image, { x, y, width, height });
 
     } catch (error) {
@@ -239,6 +246,159 @@ const drawImageFromBase64 = async ({ pdfDoc, page, base64, x, y, width, height }
   });
 }
 
+const drawParagraph = ({ 
+    page, 
+    font, 
+    boldFont, 
+    text, 
+    x1, 
+    x2, 
+    y, 
+    fontSize, 
+    lineHeight = 1.2, 
+    center = false 
+}) => {
+    const maxWidth = x2 - x1;
+    const segments = [];
+    let isBold = false;
+
+    // 1. Procesar texto: unir signos de puntuación a palabras anteriores
+    const punctuation = [',', '.', ';', ':', '!', '?', ')', ']', '}'];
+    let remainingText = text.replace(/\s+/g, ' ').trim(); // Elimina espacios dobles
+
+    while (remainingText.length > 0) {
+        if (remainingText.startsWith("**")) {
+            isBold = !isBold;
+            remainingText = remainingText.slice(2);
+        } else {
+            const nextBold = remainingText.indexOf("**");
+            const end = nextBold >= 0 ? nextBold : remainingText.length;
+            let chunk = remainingText.slice(0, end);
+
+            // Dividir en palabras y signos de puntuación
+            const words = [];
+            let currentWord = '';
+            for (const char of chunk) {
+                if (punctuation.includes(char)) {
+                    if (currentWord) {
+                        words.push(currentWord);
+                        currentWord = '';
+                    }
+                    words.push(char);
+                } else if (char === ' ') {
+                    if (currentWord) {
+                        words.push(currentWord);
+                        currentWord = '';
+                    }
+                    words.push(' ');
+                } else {
+                    currentWord += char;
+                }
+            }
+            if (currentWord) words.push(currentWord);
+
+            // Crear segmentos
+            for (const word of words) {
+                if (word === ' ') continue; // Ignorar espacios (los manejamos después)
+                segments.push({
+                    text: word,
+                    isBold,
+                    width: (isBold ? boldFont : font).widthOfTextAtSize(word, fontSize),
+                    isPunctuation: punctuation.includes(word),
+                });
+            }
+
+            remainingText = remainingText.slice(end);
+        }
+    }
+
+    // 2. Construir líneas (uniendo palabras con puntuación)
+    const lines = [];
+    let currentLine = [];
+    let currentWidth = 0;
+
+    for (let i = 0; i < segments.length; i++) {
+        const segment = segments[i];
+        const nextSegment = segments[i + 1];
+        const spaceWidth = font.widthOfTextAtSize(" ", fontSize);
+
+        // Si es puntuación, unirla al segmento anterior
+        if (segment.isPunctuation && currentLine.length > 0) {
+            const lastSegment = currentLine[currentLine.length - 1];
+            lastSegment.text += segment.text;
+            lastSegment.width += segment.width;
+            continue;
+        }
+
+        // Calcular ancho total (incluyendo espacio si no es puntuación)
+        let totalWidth = currentWidth + segment.width;
+        if (currentLine.length > 0 && !segment.isPunctuation) {
+            totalWidth += spaceWidth;
+        }
+
+        if (totalWidth <= maxWidth) {
+            currentLine.push(segment);
+            currentWidth = totalWidth;
+        } else {
+            lines.push(currentLine);
+            currentLine = [segment];
+            currentWidth = segment.width;
+        }
+    }
+    if (currentLine.length > 0) lines.push(currentLine);
+
+    // 3. Dibujar líneas
+    let currentY = y;
+    for (const line of lines) {
+        let lineWidth = line.reduce((sum, seg) => sum + seg.width, 0);
+        // Añadir espacios solo entre palabras (no después de puntuación)
+        let spaceCount = 0;
+        for (let i = 1; i < line.length; i++) {
+            if (!line[i].isPunctuation && !line[i - 1].isPunctuation) {
+                spaceCount++;
+            }
+        }
+        lineWidth += spaceCount * font.widthOfTextAtSize(" ", fontSize);
+
+        let currentX = center ? x1 + (maxWidth - lineWidth) / 2 : x1;
+
+        for (let i = 0; i < line.length; i++) {
+            const segment = line[i];
+            // Añadir espacio solo si no es puntuación y no es el primer segmento
+            if (i > 0 && !segment.isPunctuation && !line[i - 1].isPunctuation) {
+                currentX += font.widthOfTextAtSize(" ", fontSize);
+            }
+
+            page.drawText(segment.text, {
+                x: currentX,
+                y: currentY,
+                size: fontSize,
+                font: segment.isBold ? boldFont : font,
+                color: rgb(0, 0, 0),
+            });
+            currentX += segment.width;
+        }
+
+        currentY -= fontSize * lineHeight;
+    }
+
+    return currentY;
+};
+
+/**
+ * Converts a plain text string to bold format (Markdown-style).
+ * Example: "Hello world" → "**Hello** **world**"
+ * 
+ * @param {string} text - The text to convert.
+ * @returns {string} - The text with each word in bold.
+ */
+const toBoldFormat = (text) => {
+    return text
+        .split(/\s+/) // split by one or more spaces
+        .filter(word => word.trim() !== '') // remove empty words
+        .map(word => `**${word}**`) // wrap each word in asterisks
+        .join(' '); // rejoin the words with spaces
+}
 
 module.exports = {
   drawImagesInLine,
@@ -247,5 +407,7 @@ module.exports = {
   drawImageFromBase64,
   drawTextColumnCentered,
   drawImageP,
-  drawRotatedText
+  drawRotatedText,
+  drawParagraph,
+  toBoldFormat
 }
