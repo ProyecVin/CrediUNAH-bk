@@ -18,10 +18,19 @@ class CoursesAdminController {
                 return res.status(400).json({ error: 'ID del curso no proporcionado' });
             }
             
-            const course = await CoursesAdminModel.getCourseInfoForAdmin(req.params.id);
-            res.json(course);
+            const result = await CoursesAdminModel.getCourseInfoForAdmin(req.params.id);
+
+            res.send({
+                success: true,
+                message: 'Información del curso obtenida exitosamente',
+                result: result[0]
+            })
+
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ 
+                success: false,
+                error: error.message 
+            });
         }
     }
 

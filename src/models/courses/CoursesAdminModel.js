@@ -45,9 +45,8 @@ class CoursesAdminModel {
                             C.description,
                             U.full_name AS instructor,
                             C.duration_in_hours AS duration,
-                            CS.name AS status,
-                            C.start_date AS startDate,
-                            C.end_date AS endDate,
+                            CONVERT(varchar, C.start_date, 23) AS startDate,
+                            CONVERT(varchar, C.end_date, 23) AS endDate,
                             C.max_enrollment AS maximumCapacity,
                             M.name AS mode
                         FROM linkage.Courses C

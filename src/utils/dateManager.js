@@ -1,3 +1,15 @@
+const formatDateDMY = (date) => {
+  if (!(date instanceof Date) || isNaN(date.getTime())) {
+    throw new Error('Se esperaba un objeto Date válido');
+  }
+
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year}`;
+}
+
 const getDateInLetters = (date = new Date()) => {
   const options = { 
       day: 'numeric', 
@@ -40,5 +52,6 @@ const formatDateToDayMonthInLetters = (date) => {
 
 module.exports = {
     getDateInLetters,
-    formatDateToDayMonthInLetters
+    formatDateToDayMonthInLetters,
+    formatDateDMY
 }

@@ -30,11 +30,11 @@ app.use((fileUpload({
   tempFileDir: './uploads',
 })));
 
-app.use('/api', routes);
-
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
+
+app.use('/api', routes);
 
 app.use('/test', test);
 
