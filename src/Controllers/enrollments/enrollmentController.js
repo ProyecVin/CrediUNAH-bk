@@ -1,6 +1,10 @@
 const EnrollmentModel = require('../../models/enrollments/EnrollmentModel');
 
 class EnrollmentController {
+  constructor() {
+    this.enrollmentModel = EnrollmentModel;
+  }
+
   async gradeStudent(req, res) {
     try {
       const { student_id, course_id, grade, comments } = req.body;
@@ -18,6 +22,16 @@ class EnrollmentController {
       }
     } catch (error) {
       res.status(500).json({ error: error.message });
+    }
+  }
+
+  getAllCourseEnrollmentsForAdmin = async (req, res) => {
+    try {
+        const result = await this.enrollmentModel.getAllCourseEnrollmentsForAdmin(req.params.courseId);
+        res.json ({ success: true, message: 'Estudiantes obtenidos con éxito.', result});
+    } catch (error) {
+        console.error('Error generating certificates:', error);
+        return res.status(500).json({ success: false, message: 'Error obteniendo estudiantes del curso', error: error.message });
     }
   }
 }

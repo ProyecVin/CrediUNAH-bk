@@ -33,6 +33,43 @@ class CoursesAdminModel {
             throw err;
         }
     }
+
+    async getCourseInfoForAdmin(courseId) {
+        try {
+            const pool = await sql.connect(config);
+            const result = await pool.request()
+                .query(`
+                        SELECT 
+                            C.ID AS code,
+                            C.title AS name,
+                            C.description,
+                            U.full_name AS instructor,
+                            C.duration_in_hours AS duration,
+                            CONVERT(varchar, C.start_date, 23) AS startDate,
+                            CONVERT(varchar, C.end_date, 23) AS endDate,
+                            C.max_enrollment AS maximumCapacity,
+                            M.name AS mode
+                        FROM linkage.Courses C
+                        LEFT JOIN linkage.Course_Instructors CI ON (CI.course_id = C.ID AND CI.is_titular = 1)
+                        LEFT JOIN linkage.Users U ON (U.ID = CI.user_id)
+                        LEFT JOIN (
+                            SELECT CSH1.course_id, CSH1.status_id, CSH1.start_date
+                            FROM linkage.Course_Status_History CSH1
+                            INNER JOIN (
+                                SELECT course_id, MAX(start_date) as max_date
+                                FROM linkage.Course_Status_History
+                                GROUP BY course_id
+                            ) CSH2 ON CSH1.course_id = CSH2.course_id AND CSH1.start_date = CSH2.max_date
+                        ) CSH ON CSH.course_id = C.ID
+                        LEFT JOIN linkage.Course_Status CS ON (CS.ID = CSH.status_id)
+                        LEFT JOIN linkage.Modalities M ON (M.ID = C.modality_id)
+                        WHERE CS.name != 'En oferta' and C.ID = ${courseId};
+                    `);
+            return result.recordset;
+        } catch (err) {
+            throw err;
+        }
+    }
 }
 
 module.exports = new CoursesAdminModel();

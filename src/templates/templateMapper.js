@@ -13,7 +13,7 @@ const TEMPLATE_MAPPER = {
   CPFI01: {
     generate: constPartFacuInge01.generateCertificate,
     validate: (enrollment) => true, // All
-    defaultTemplateUrl: 'https://linkage-storage.s3.us-east-1.amazonaws.com/templates/certAprFacuInge01.pdf',
+    defaultTemplateUrl: 'https://linkage-storage.s3.us-east-1.amazonaws.com/templates/constPartFacuInge01.pdf',
     requiredFields: ['studentDNI', 'studentName']
   }
 
