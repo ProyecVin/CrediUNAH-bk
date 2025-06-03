@@ -4,33 +4,40 @@ const fileUpload = require("express-fileupload");
 const morgan = require('morgan');
 const helmet = require('helmet');
 
+require('dotenv').config();
+require('./utils/s3Client.js');
+require('./utils/s3')
+
 const { notFoundHandler, errorHandler } = require('./utils/errorHandler');
 const { getConnection } = require('./config/awsDB');
 
-require('dotenv').config();
-require('./utils/s3Client.js');
-
 const routes = require('./routes');
+const coursesRoutes = require('./routes/coursesRoutes');
 
-const test = require('./routes/test.router.js');
-const req = require('express/lib/request.js');
+getConnection();
+
+const test = require('./routes/test.router');
+const req = require('express/lib/request');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-getConnection();
+
 
 // Middleware
 app.use(cors());
 app.use(helmet());
-app.use(express.json());
+
+app.use('/api', express.json(), routes);
 
 app.use((fileUpload({
   useTempFiles: true,
   tempFileDir: './uploads',
 })));
 
-app.use('/api', routes);
+app.use('/api/courses', coursesRoutes);
+
+
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
