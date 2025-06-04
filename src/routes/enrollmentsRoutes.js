@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 const EnrollmentController = require('../Controllers/enrollments/enrollmentController');
-const upload = require('../../middlewares/uploadMiddleware');
+const upload = require('../../middlewares/uploadExcel');
 
 router.post('/grade', EnrollmentController.gradeStudent);
 router.get('/course/:courseId', EnrollmentController.getAllCourseEnrollmentsForAdmin);
