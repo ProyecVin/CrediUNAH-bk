@@ -6,7 +6,32 @@ class CoursesAdminModel {
         try {
             const pool = await sql.connect(config);
             const result = await pool.request()
+<<<<<<< HEAD
                 .query('SELECT * FROM linkage.Courses'); // Consulta directa a la tabla o vista
+=======
+                .query(`
+                        SELECT 
+                            C.ID AS code,
+                            C.title AS name,
+                            U.full_name AS instructor,
+                            C.duration_in_hours AS duration,
+                            CS.name AS status
+                        FROM linkage.Courses C
+                        LEFT JOIN linkage.Course_Instructors CI ON (CI.course_id = C.ID AND CI.is_titular = 1)
+                        LEFT JOIN linkage.Users U ON (U.ID = CI.user_id)
+                        LEFT JOIN (
+                            SELECT CSH1.course_id, CSH1.status_id, CSH1.start_date
+                            FROM linkage.Course_Status_History CSH1
+                            INNER JOIN (
+                                SELECT course_id, MAX(start_date) as max_date
+                                FROM linkage.Course_Status_History
+                                GROUP BY course_id
+                            ) CSH2 ON CSH1.course_id = CSH2.course_id AND CSH1.start_date = CSH2.max_date
+                        ) CSH ON CSH.course_id = C.ID
+                        LEFT JOIN linkage.Course_Status CS ON (CS.ID = CSH.status_id)
+                        WHERE CS.name != 'En oferta';
+                    `); // Consulta directa a la tabla o vista
+>>>>>>> d80ebb03ab2cfcdea2a686e74e3daa6fc6ec4320
             return result.recordset; // Devuelve array de cursos para landing
         } catch (err) {
             throw err;
