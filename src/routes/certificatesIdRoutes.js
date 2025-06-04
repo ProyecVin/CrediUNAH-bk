@@ -1,4 +1,3 @@
-// src/routes/certificatesUserRoutes.js
 const express = require('express');
 const router = express.Router();
 const certificatesUserController = require('../controllers/certificates/certificatesIdController.js');

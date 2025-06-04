@@ -1,7 +1,6 @@
 // src/models/certificates/certificatesUserModel.js
 const sql = require('mssql');
 const config = require('../../config/database');
-
 class CertificatesUserModel {
   async getCertificatesByIdentity(identity) {
     try {

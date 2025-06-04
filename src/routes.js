@@ -26,6 +26,5 @@ router.use('/courses', courseAdminRoutes); // Este puede ir dentro de las rutas 
 router.use('/enrollments', enrollmentsRoutes);
 router.use('/certificates', certificatesUserRoutes);
 
-
 module.exports = router;
 

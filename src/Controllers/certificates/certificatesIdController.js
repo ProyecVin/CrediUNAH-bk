@@ -12,5 +12,4 @@ class CertificatesUserController {
     }
   }
 }
-
 module.exports = new CertificatesUserController();
