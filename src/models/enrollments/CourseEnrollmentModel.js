@@ -1,4 +1,4 @@
-const { getConnection, sql } = require('../../config/awsDB');
+/*const { getConnection, sql } = require('../../config/awsDB');
 const config = require('../../config/awsDB');
 
 class EnrollmentModel {
@@ -90,5 +90,71 @@ class EnrollmentModel {
 
 }
 
-module.exports = new EnrollmentModel();
+module.exports = new EnrollmentModel();*/
+
+const sql = require('mssql');
+const config = require('../../config/awsDB');
+
+const CourseEnrollmentsModel = {
+  create: async ({ student_id, course_id, enrolled_at, evaluated_at = null, status_id, grade = null, comments = null, last_updated_at, project_id = null }) => {
+    const pool = await sql.connect(config);
+    return pool.request()
+      .input('student_id', sql.NVarChar(15), student_id)
+      .input('course_id', sql.Int, course_id)
+      .input('enrolled_at', sql.DateTime, enrolled_at)
+      .input('evaluated_at', sql.DateTime, evaluated_at)
+      .input('status_id', sql.Int, status_id)
+      .input('grade', sql.Decimal(5, 2), grade)
+      .input('comments', sql.NVarChar(sql.MAX), comments)
+      .input('last_updated_at', sql.DateTime, last_updated_at)
+      .input('project_id', sql.Int, project_id)
+      .execute('linkage.sp_CreateCourseEnrollment');
+  },
+
+  update: async ({ ID, evaluated_at, status_id, grade, comments, last_updated_at }) => {
+    const pool = await sql.connect(config);
+    return pool.request()
+      .input('ID', sql.Int, ID)
+      .input('evaluated_at', sql.DateTime, evaluated_at)
+      .input('status_id', sql.Int, status_id)
+      .input('grade', sql.Decimal(5, 2), grade)
+      .input('comments', sql.NVarChar(sql.MAX), comments)
+      .input('last_updated_at', sql.DateTime, last_updated_at)
+      .execute('linkage.sp_UpdateCourseEnrollment');
+  },
+
+  delete: async (ID) => {
+    const pool = await sql.connect(config);
+    return pool.request()
+      .input('ID', sql.Int, ID)
+      .execute('linkage.sp_DeleteCourseEnrollment');
+  },
+
+  getAll: async () => {
+    const pool = await sql.connect(config);
+    return pool.request().execute('linkage.sp_GetAllCourseEnrollments');
+  },
+
+  getById: async (ID) => {
+    const pool = await sql.connect(config);
+    return pool.request()
+      .query(`SELECT * FROM linkage.Course_Enrollments WHERE ID = ${ID}`);
+  },
+
+  getByCourse: async (course_id) => {
+    const pool = await sql.connect(config);
+    return pool.request()
+      .input('course_id', sql.Int, course_id)
+      .execute('linkage.sp_GetEnrollmentsByCourse');
+  },
+
+  getByStudent: async (student_id) => {
+    const pool = await sql.connect(config);
+    return pool.request()
+      .input('student_id', sql.NVarChar(15), student_id)
+      .execute('linkage.sp_GetEnrollmentsByStudent');
+  }
+};
+
+module.exports = CourseEnrollmentsModel;
 

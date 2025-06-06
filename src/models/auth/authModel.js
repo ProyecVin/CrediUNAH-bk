@@ -8,7 +8,7 @@ async function createUser(nombre, apellido, correo, telefono, rol_id) {
   request.input("correo", sql.NVarChar, correo);
   request.input("telefono", sql.NVarChar, telefono);
   request.input("rol_id", sql.Int, rol_id);
-  await request.execute("linkage.spCrearUsuario");
+  await request.execute("linkage.sp_CreateUser");
 }
 
 async function getUserByEmail(correo) {

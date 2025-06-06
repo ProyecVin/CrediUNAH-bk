@@ -1,4 +1,4 @@
-const EnrollmentModel = require('../../models/enrollments/EnrollmentModel');
+/*const EnrollmentModel = require('../../models/enrollments/EnrollmentModel');
 
 const xlsx = require('xlsx');
 const sql = require('mssql');
@@ -91,5 +91,76 @@ async importGradesFromExcel(req, res) {
 
 }
 
-module.exports = new EnrollmentController();
+module.exports = new EnrollmentController();*/
+
+const CourseEnrollmentsModel = require('../../models/enrollments/CourseEnrollmentModel');
+
+const CourseEnrollmentsController = {
+  getAll: async (req, res) => {
+    try {
+      const result = await CourseEnrollmentsModel.getAll();
+      res.json(result.recordset);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  getById: async (req, res) => {
+    try {
+      const result = await CourseEnrollmentsModel.getById(req.params.id);
+      res.json(result.recordset[0]);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  getByCourse: async (req, res) => {
+    try {
+      const result = await CourseEnrollmentsModel.getByCourse(req.params.courseId);
+      res.json(result.recordset);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  getByStudent: async (req, res) => {
+    try {
+      const result = await CourseEnrollmentsModel.getByStudent(req.params.userId);
+      res.json(result.recordset);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  create: async (req, res) => {
+    try {
+      const result = await CourseEnrollmentsModel.create(req.body);
+      res.status(201).json({ message: 'Inscripción registrada.' });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  update: async (req, res) => {
+    try {
+      const result = await CourseEnrollmentsModel.update({ ID: req.params.id, ...req.body });
+      res.json({ message: 'Inscripción actualizada.' });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  delete: async (req, res) => {
+    try {
+      await CourseEnrollmentsModel.delete(req.params.id);
+      res.json({ message: 'Inscripción eliminada.' });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+};
+
+module.exports = CourseEnrollmentsController;
+
+
 
