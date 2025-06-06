@@ -154,6 +154,8 @@ const CourseEnrollmentsModel = {
       .input('student_id', sql.NVarChar(15), student_id)
       .execute('linkage.sp_GetEnrollmentsByStudent');
   }
+
+  
 };
 
 module.exports = CourseEnrollmentsModel;

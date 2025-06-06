@@ -10,6 +10,9 @@ const modalitiesRoutes = require('./routes/modalitiesRoutes');
 const postCourseRoutes = require('./routes/postCourseRoutes');
 const enrollmentsRoutes = require('./routes/enrollmentsRoutes');
 const courseEnrollmentsRoutes = require('./routes/courseEnrollmentsRoutes');
+const projectsRoutes = require('./routes/projectsRoutes');
+const courseInterestRoutes = require('./routes/courseInterestRoutes');
+
 
 router.use('/auth', authRoutes);
 router.use('/courses', coursesRoutes); //Rafa
@@ -22,6 +25,7 @@ router.use('/post', postCourseRoutes);
 router.use('/enrollments', enrollmentsRoutes); //Kat
 router.use('/excel', enrollmentsRoutes);//Rafa
 router.use('/enrollments', courseEnrollmentsRoutes);
-
+router.use('/projects', projectsRoutes);
+router.use('/course-interests', courseInterestRoutes);
 module.exports = router;
 
