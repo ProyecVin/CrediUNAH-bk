@@ -1,11 +1,11 @@
-const certificateModel = require('../../models/certificates/CertificateModel.js');
-const certificateTypeModel = require('../../models/certificate_types/CertificateTypeModel.js');
-const certificateLogoModel = require('../../models/logos/CertificateLogoModel.js');
+const certificateModel = require('../../models/certificates/certificateModel');
+const certificateTypeModel = require('../../models/certificate_types/CertificateTypeModel');
+const certificateLogoModel = require('../../models/logos/CertificateLogoModel');
 const courseModel = require('../../models/courses/courseModel.js');
-const enrollmentModel = require('../../models/enrollments/EnrollmentModel.js')
-const signatureModel = require('../../models/signatures/SignatureModel.js');
+const enrollmentModel = require('../../models/enrollments/EnrollmentModel')
+const signatureModel = require('../../models/signatures/SignatureModel');
 
-const templateMapper = require('../../templates/templateMapper.js');
+const templateMapper = require('../../templates/templateMapper');
 
 const path = require('path');
 const { getDateInLetters } = require('../../utils/dateManager.js');

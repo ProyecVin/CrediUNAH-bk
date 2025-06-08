@@ -1,40 +1,83 @@
-// src/Controllers/operational/courses.js
-const CoursesModel = require('../../models/courses/courseModel');
+// File: src/controllers/course/coursesController.js
+const courseModel = require('../../models/courses/courseModel');
 
-class CoursesController {
-    async getCoursesForLanding(req, res) {
-        try {
-            const courses = await CoursesModel.getCoursesForLanding();
-            
-            if (courses.length === 0) {
-                return res.status(404).json({ 
-                    message: 'No se encontraron cursos activos para mostrar' 
-                });
-            }
-            
-            res.json(courses); 
-        } catch (error) {
-            res.status(500).json({ 
-                error: error.message 
-            });
-        }
+/**
+ * Crea un curso.
+ * Soporta archivo de imagen subido como 'image' (req.file) si se usa multer.
+ */
+exports.createCourse = async (req, res) => {
+  try {
+    console.log('Datos recibidos:', req.body);
+    console.log('Archivo recibido:', req.file);
+    const userId = req.user.id; // extraído del middleware de autenticación
+    const data = {
+      ...req.body,
+      created_by: userId,
+    };
+
+    // Si viene una imagen (ej. desde multer), añade el buffer y el nombre original
+    if (req.file) {
+      data.imageFile = req.file.buffer;
+      data.imageFileName = req.file.originalname;
     }
 
-    async getCourseById(req, res) {
-    try {
-        const { id } = req.params;
-        const course = await CoursesModel.getCourseById(id);
-        
-        if (!course) {
-            return res.status(404).json({ message: 'Curso no encontrado' });
-        }
+    await courseModel.createCourse(data);
+    res.status(201).json({ message: 'Curso creado correctamente.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
-        res.json(course);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+/**
+ * Actualiza un curso.
+ * Si viene imagen (req.file), se sube a S3 y reemplaza la URL.
+ */
+exports.updateCourse = async (req, res) => {
+  try {
+    const data = { ...req.body };
+
+    if (req.file) {
+      data.imageFile = req.file.buffer;
+      data.imageFileName = req.file.originalname;
     }
-}
 
-}
+    await courseModel.updateCourse(req.params.id, data);
+    res.status(200).json({ message: 'Curso actualizado.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
-module.exports = new CoursesController();
+/**
+ * Obtiene todos los cursos activos.
+ */
+exports.getCourses = async (_req, res) => {
+  try {
+    const courses = await courseModel.getActiveCourses();
+    res.status(200).json(courses);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/**
+ * Elimina un curso (lógicamente).
+ */
+exports.deleteCourse = async (req, res) => {
+  try {
+    await courseModel.deleteCourse(req.params.id);
+    res.status(200).json({ message: 'Curso eliminado lógicamente.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+exports.getInactiveCourses = async (_req, res) => {
+  try {
+    const courses = await courseModel.getInactiveCourses();
+    res.status(200).json(courses);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

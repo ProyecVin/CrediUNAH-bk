@@ -1,10 +1,169 @@
 // src/models/operational/Courses.js
-const sql = require('mssql');
-const { getConnection } = require('../../config/awsDB');
+const { getConnection, sql } = require('mssql');
+const config = require('../../config/database');
+const { uploadFileToS3 } = require('../../utils/s3');  
 
-class CourseModel {
+class CourseModel { 
 
-    async getCoursesForLanding() {
+    /**
+     * Crea un curso.
+     * @param {Object} data            
+     * @param {Buffer} [data.imageFile]
+     * @param {string} [data.image]     
+     * @returns {Promise<sql.IResult<any>>}
+     */
+    createCourse = async (data) => {
+      // --- Subir a S3 (opcional) ---------------------------------------------
+      let imageUrl = data.image || null;
+      if (data.imageFile && !imageUrl) {
+        imageUrl = await uploadFileToS3(data.imageFile, data.imageFileName || 'image.jpg');
+      }
+      // ------------------------------------------------------------------------
+
+      const pool = await getConnection();
+      const result = await pool.request()
+        .input('title',              sql.NVarChar(255), data.title)
+        .input('skills',             sql.NVarChar(30),  data.skills)
+        .input('description',        sql.NVarChar(sql.MAX), data.description)
+        .input('start_date',         sql.Date,         data.start_date)
+        .input('end_date',           sql.Date,         data.end_date)
+        .input('duration_in_hours',  sql.Int,          data.duration_in_hours)
+        .input('has_microcredential',sql.Bit,          data.has_microcredential)
+        .input('max_enrollment',     sql.Int,          data.max_enrollment)
+        .input('image',              sql.NVarChar(255), imageUrl)          // <-- cambio
+        .input('created_by',         sql.NVarChar(15), data.created_by)
+        .input('operational_unit_id',sql.NVarChar(15), data.operational_unit_id)
+        .input('certifying_op_unit_id',sql.NVarChar(15), data.certifying_op_unit_id)
+        .input('modality_id',        sql.Int,          data.modality_id)
+        .input('course_type_id',     sql.Int,          data.course_type_id)
+        .execute('linkage.sp_create_course');
+      return result;
+    }
+
+    /**
+     * Actualiza un curso.
+     * Si mandas imageFile se sube a S3 y se cambia la URL; si mandas image solo la asigna.
+     */
+    /*
+    async function updateCourse(id, data) {
+      let imageUrl = data.image || undefined;
+
+      if (data.imageFile && !imageUrl) {
+        imageUrl = await uploadFileToS3(data.imageFile, data.imageFileName || 'image.jpg');
+      }
+
+      const pool = await getConnection();
+      const request = pool.request().input('ID', sql.Int, id);
+
+      // Preparar los campos dinámicos
+      const updateData = { ...data, image: imageUrl };
+      Object.entries(updateData).forEach(([key, value]) => {
+        if (value !== undefined) {
+          const sqlType = getSqlType(key);
+          request.input(key, sqlType, value);
+        }
+      });
+
+      const result = await request.execute('linkage.sp_update_course');
+      return result;
+    }*/
+
+
+    updateCourse = async => (id, data) {
+      let imageUrl = data.image || undefined;
+
+      if (data.imageFile && !imageUrl) {
+        imageUrl = await uploadFileToS3(data.imageFile, data.imageFileName || 'image.jpg');
+      }
+
+      const allowedFields = {
+        title:                 sql.NVarChar(255),
+        skills:                sql.NVarChar(30),
+        description:           sql.NVarChar(sql.MAX),
+        start_date:            sql.Date,
+        end_date:              sql.Date,
+        duration_in_hours:     sql.Int,
+        has_microcredential:   sql.Bit,
+        max_enrollment:        sql.Int,
+        image:                 sql.NVarChar(255),
+        created_by:            sql.NVarChar(15),
+        operational_unit_id:   sql.NVarChar(15),
+        certifying_op_unit_id: sql.NVarChar(15),
+        modality_id:           sql.Int,
+        course_type_id:        sql.Int,
+      };
+
+      const updateData = {};
+      if (imageUrl) updateData.image = imageUrl;
+
+      for (const [key, value] of Object.entries(data)) {
+        if (allowedFields[key] && value !== undefined) {
+          updateData[key] = value;
+        }
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        throw new Error("Debe enviar al menos un campo válido para actualizar.");
+      }
+
+      const pool = await getConnection();
+      const request = pool.request().input('ID', sql.Int, id);
+
+      for (const [key, value] of Object.entries(updateData)) {
+        request.input(key, allowedFields[key], value);
+      }
+
+      const result = await request.execute('linkage.sp_update_course');
+      return result;
+    }
+
+
+
+    getActiveCourses = async () => {
+      const pool = await getConnection();
+      const result = await pool.request().execute('linkage.sp_get_active_courses');
+      return result.recordset;
+    }
+
+
+    deleteCourse = (id) => {
+      const pool = await getConnection();
+      const result = await pool.request()
+        .input('ID', sql.Int, id)
+        .execute('linkage.sp_delete_course');
+      return result;
+    }
+
+    /**
+     * Devuelve el tipo SQL correspondiente al nombre de parámetro.
+     */
+    getSqlType = (key) => {
+      const typeMap = {
+        title:                 sql.NVarChar(255),
+        skills:                sql.NVarChar(30),
+        description:           sql.NVarChar(sql.MAX),
+        start_date:            sql.Date,
+        end_date:              sql.Date,
+        duration_in_hours:     sql.Int,
+        has_microcredential:   sql.Bit,
+        max_enrollment:        sql.Int,
+        image:                 sql.NVarChar(255),  
+        created_by:            sql.NVarChar(15),
+        operational_unit_id:   sql.NVarChar(15),
+        certifying_op_unit_id: sql.NVarChar(15),
+        modality_id:           sql.Int,
+        course_type_id:        sql.Int,
+      };
+      return typeMap[key] || sql.NVarChar;
+    }
+
+    getInactiveCourses = () => {
+      const pool = await getConnection();
+      const result = await pool.request().execute('linkage.sp_get_inactive_courses');
+      return result.recordset;
+    }
+
+    getCoursesForLanding = async () => {
         try {
             const pool = await sql.connect(config);
             const result = await pool.request()
@@ -55,8 +214,6 @@ class CourseModel {
                     C.DESCRIPTION AS description, 
                     C.DURATION_IN_HOURS AS durationInHours, 
                     C.SKILLS AS skills,
-                    C.START_DATE AS startDate,
-                    C.END_DATE AS endDate,
                     OU.ID AS operationalUnitId, 
                     OU2.ID AS certifyingOpUnitId,
                     OU.NAME AS operationalUnitName,
@@ -78,15 +235,13 @@ class CourseModel {
                     FROM LINKAGE.COURSE_STATUS_HISTORY
                     WHERE COURSE_ID = ${courseId}
                 );`);
-
             return result.recordset;        
-
         } catch (error) {
             return error;
         }
     }
 
-    async getCourseById(id) {
+    getCourseById = (id) => {
         try {
             const pool = await sql.connect(config);
             const result = await pool.request()
@@ -98,47 +253,6 @@ class CourseModel {
         }
     }
 
-    //es posible que este incorrecto(que campos modificamos y que campos no(el id supongo que no))
-    async updateCourse(course) {
-        try {
-            const pool = await sql.connect(config);
-            const result = await pool.request()
-                .input('id', sql.Int, course.id) 
-                .input('title', sql.NVarChar, course.title)
-                .input('description', sql.NVarChar, course.description)
-                .input('start_date', sql.DateTime, course.start_date)
-                .input('end_date', sql.DateTime, course.end_date)
-                .input('duration_in_hours', sql.Int, course.duration_in_hours)
-                .input('has_microcredential', sql.Bit, course.has_microcfredential)
-                .input('max_enrollment', sql.Int, course.max_enrollment)
-                .input('created_at', sql.DateTime, course.created_at)
-                .input('last_updated_at', sql.DateTime, course.last_updated_at)
-                .input('image_id', sql.Int, course.image_id)
-                .input('created_by', sql.Int, course.created_by)
-                .input('operational_unit_id', sql.NVarChar, course.operational_unit_id)
-                .input('modality_id', sql.Int, course.modality_id) 
-                .query(`
-                    UPDATE linkage.Courses 
-                    SET title = @title,
-                        description = @description,
-                        start_date = @start_date,
-                        end_date = @end_date,
-                        duration_in_hours = @duration_in_hours,
-                        has_microcredential = @has_microcredential,
-                        max_enrollment = @max_enrollment,
-                        created_at = @created_at,
-                        last_updated_at = @last_updated_at,
-                        image_id = @image_id,
-                        created_by = @created_by,
-                        operational_unit_id = @operational_unit_id,
-                        modality_id = @modality_id
-                    WHERE id = @id
-                `);
-            return result;
-        } catch (err) {
-            throw err;
-        }
-    }
 }
 
 module.exports = new CourseModel();

@@ -1,4 +1,4 @@
-const CourseModel = require('../../models/postCourse/PostCourseModel.js');
+const CourseModel = require('../../models/postCourse/PostCourseModel');
 
 class CourseController {
     async registerCourse(req, res) {
