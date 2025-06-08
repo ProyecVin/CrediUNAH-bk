@@ -1,6 +1,7 @@
 // src/models/operational/Courses.js
-const { getConnection, sql } = require('mssql');
+const { sql } = require('mssql');
 const config = require('../../config/database');
+const { getConnection } = require('../../config/awsDB');
 const { uploadFileToS3 } = require('../../utils/s3');  
 
 class CourseModel { 

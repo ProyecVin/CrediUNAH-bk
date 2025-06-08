@@ -32,6 +32,8 @@ class CertificateServices {
             const failed = {};    
 
             let { courseInfo, enrollments, certificates } = await this.getInfoForCertificate(courseId);
+
+            console.log(courseInfo);
             courseInfo = courseInfo[0];
 
             let correlative = courseInfo.certifyingOpUnitCertificateIssued + 1;
