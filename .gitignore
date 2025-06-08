@@ -6,4 +6,3 @@ uploads/
 src/secrets/firebase-adminsdk.json
 package-lock.json
 rds.txt
-package-lock.json
