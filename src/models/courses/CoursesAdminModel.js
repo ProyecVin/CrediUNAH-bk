@@ -6,6 +6,9 @@ class CoursesAdminModel {
         try {
             const pool = await sql.connect(config);
             const result = await pool.request()
+<<<<<<< HEAD
+                .query('SELECT * FROM linkage.Courses'); // Consulta directa a la tabla o vista
+=======
                 .query(`
                         SELECT 
                             C.ID AS code,
@@ -28,6 +31,7 @@ class CoursesAdminModel {
                         LEFT JOIN linkage.Course_Status CS ON (CS.ID = CSH.status_id)
                         WHERE CS.name != 'En oferta';
                     `); // Consulta directa a la tabla o vista
+>>>>>>> d80ebb03ab2cfcdea2a686e74e3daa6fc6ec4320
             return result.recordset; // Devuelve array de cursos para landing
         } catch (err) {
             throw err;
