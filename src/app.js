@@ -31,7 +31,7 @@ app.use(helmet());
 
 app.use('/api', express.json(), routes);
 
-/*app.use((fileUpload({
+app.use((fileUpload({
   useTempFiles: true,
   tempFileDir: './uploads',
 })));
