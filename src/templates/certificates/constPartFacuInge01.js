@@ -34,7 +34,7 @@ const generateCertificate = async ({
     const templateBytes = fs.readFileSync(templatePath);
 
     // dibujar cuadricula
-    await generatePDFGridLayout(templatePath, path.resolve(__dirname, '../../assets/generated/constPartFacuInge01Grid.pdf'));
+    // await generatePDFGridLayout(templatePath, path.resolve(__dirname, '../../assets/generated/constPartFacuInge01Grid.pdf'));
 
     // Document
     const pdfDoc = await PDFDocument.load(templateBytes);

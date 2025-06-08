@@ -13,7 +13,6 @@ const { notFoundHandler, errorHandler } = require('./utils/errorHandler');
 const { getConnection } = require('./config/awsDB');
 
 const routes = require('./routes');
-const coursesRoutes = require('./routes/coursesRoutes');
 
 getConnection();
 
@@ -23,11 +22,13 @@ const req = require('express/lib/request');
 const app = express();
 const port = process.env.PORT || 3000;
 
-
-
 // Middleware
 app.use(cors());
 app.use(helmet());
+
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
 
 app.use('/api', express.json(), routes);
 
@@ -37,15 +38,7 @@ app.use((fileUpload({
 })));
 
 app.use('/api', routes);
-
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-}
-
-app.use('/api', routes);
-
 app.use('/test', test);
-
 
 // Ruta principal de que funciona el backend
 app.get('/', (req, res) => {
@@ -54,6 +47,7 @@ app.get('/', (req, res) => {
 
 app.use(notFoundHandler);
 app.use(errorHandler);
+
 app.listen(port, '0.0.0.0', () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
 });

@@ -8,33 +8,20 @@ const instructorsRoutes = require('./routes/instructorsRoutes');
 //const coursesRoutes = require('./routes/coursesRoutes');
 const modalitiesRoutes = require('./routes/modalitiesRoutes');
 const postCourseRoutes = require('./routes/postCourseRoutes');
-<<<<<<< HEAD
 const courseAdminRoutes = require('./routes/coursesAdminRoutes');
 const enrollmentsRoutes = require('./routes/enrollmentsRoutes');
 const signatureRoutes = require('./routes/signatureRoutes');
 const certificatesUserRoutes = require('./routes/certificatesIdRoutes');
-=======
-const enrollmentsRoutes = require('./routes/enrollmentsRoutes');
->>>>>>> d80ebb03ab2cfcdea2a686e74e3daa6fc6ec4320
 
 
 router.use('/auth', authRoutes);
-//router.use('/courses', coursesRoutes); 
 router.use('/certificates', certificatesRoutes);
 router.use('/operation', operationalUnitsRoutes);
 router.use('/instructors', instructorsRoutes);
-//router.use('/courses', coursesRoutes);
 router.use('/modalities', modalitiesRoutes); 
-<<<<<<< HEAD
 router.use('/signatures', signatureRoutes);
 router.use('/post', postCourseRoutes); 
 router.use('/courses', courseAdminRoutes); // Este puede ir dentro de las rutas de courses -----
 router.use('/enrollments', enrollmentsRoutes);
-router.use('/certificates', certificatesUserRoutes);
-=======
-router.use('/post', postCourseRoutes); 
-router.use('/enrollments', enrollmentsRoutes);
->>>>>>> d80ebb03ab2cfcdea2a686e74e3daa6fc6ec4320
 
 module.exports = router;
-
