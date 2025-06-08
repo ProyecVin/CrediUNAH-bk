@@ -44,11 +44,6 @@ class CertificateServices {
                 const certificateType = certificate.certificateType;
                 const templateKey = certificateType.certificateTypeId;
 
-                // Linea temporal para omitir los cetificados de aprobacion de momento
-                if (templateKey === 'CAFI01') {
-                    continue;
-                }
-
                 if (!templateMapper[templateKey]) {
                     console.warn(`No hay plantilla configurada para: ${templateKey}`);
                     continue;
@@ -60,7 +55,6 @@ class CertificateServices {
                 const signers = this.parseSigners(certificate.signatures);
 
                 const is_physically_signed = await this.signatureModel.isPhysicallySigned(courseId, templateKey);
-                console.log(is_physically_signed[0].is_physically_signed);
 
                 // Inicializar arrays si no existen para ese tipo de certificado
                 if (!generated[templateKey]) generated[templateKey] = [];
@@ -93,26 +87,28 @@ class CertificateServices {
                             endDate: courseInfo.endDate
                         });
 
-                        const localPath = path.join(__dirname, './diplomas_inocuidad', file.fileName);
+                        const localPath = path.join(__dirname, `../../assets/generated/${templateKey}`, file.fileName);
+                        console.log(`Guardando certificado en: ${localPath}`);
                         fs.writeFileSync(localPath, file.pdfBytes);
 
                         // Guardar certificado en S3
-                        // let fileURL = await uploadFileToS3(
-                        //     `courses/${courseInfo.courseName}/${templateKey}/${file.fileName}`, 
-                        //     file.pdfBytes, 
-                        //     false
-                        // );
+                        let fileURL = await uploadFileToS3(
+                            `courses/${courseInfo.courseName}/${templateKey}/${file.fileName}`, 
+                            file.pdfBytes, 
+                            false
+                        );
 
-                        // // Guardar URL en Media
-                        // let  media = await saveMedia(file.fileName, fileURL, 5, `${templateKey} de ${enroll.studentDNI}.`)
+                        // Guardar URL en Media
+                        let  media = await saveMedia(file.fileName, fileURL, 5, `${templateKey} de ${enroll.studentDNI}.`)
 
-                        // // Guardar certificado en base de datos
-                        // let result = await this.certificateModel.saveCertificate(enroll.enrollmentId, uniqueCode, media.mediaId, 1, templateKey);
-                        // console.log(result);
+                        // Guardar certificado en base de datos
+                        let result = await this.certificateModel.saveCertificate(enroll.enrollmentId, uniqueCode, media.mediaId, 1, templateKey);
+                        console.log(result);
 
                         // Pendiente 
                         // Actualizar cantidad de certificados emitidos por unidad certificadora
                         // Logica para evitar duplicidad
+                        // Criterio de aprobación para emisión de certificado
 
                         generated[templateKey].push({ student: enroll.studentDNI });
                         correlative ++;
@@ -130,9 +126,15 @@ class CertificateServices {
             }
 
             return {
-                generated,
-                failed
+                resumen: Object.keys(generated).map(templateKey => ({
+                    tipo: templateKey,
+                    emitidos: generated[templateKey].length,
+                    fallidos: failed[templateKey]?.length || 0
+                })),
+                detalle_exitosos: generated,
+                detalle_fallidos: failed
             };
+
 
         } catch (error) {
             console.error('Error generating certificates:', error);
