@@ -69,7 +69,7 @@ class CourseModel {
     }*/
 
 
-    updateCourse = async => (id, data) {
+    updateCourse = async(id, data) => {
       let imageUrl = data.image || undefined;
 
       if (data.imageFile && !imageUrl) {
@@ -126,7 +126,7 @@ class CourseModel {
     }
 
 
-    deleteCourse = (id) => {
+    deleteCourse = async (id) => {
       const pool = await getConnection();
       const result = await pool.request()
         .input('ID', sql.Int, id)
@@ -157,7 +157,7 @@ class CourseModel {
       return typeMap[key] || sql.NVarChar;
     }
 
-    getInactiveCourses = () => {
+    getInactiveCourses = async () => {
       const pool = await getConnection();
       const result = await pool.request().execute('linkage.sp_get_inactive_courses');
       return result.recordset;
@@ -241,7 +241,7 @@ class CourseModel {
         }
     }
 
-    getCourseById = (id) => {
+    getCourseById = async (id) => {
         try {
             const pool = await sql.connect(config);
             const result = await pool.request()
