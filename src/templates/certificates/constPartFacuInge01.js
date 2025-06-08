@@ -3,13 +3,8 @@ var fontkit = require('fontkit');
 const fs = require('fs');
 const path = require('path');
 const fsp = require('fs/promises');
-const { drawTextP, drawImageP, drawImagesInLine, generatePDFGridLayout, drawTextColumnCentered, drawParagraph, toBoldFormat } = require('../../utils/pdfGenerator'); 
+const { drawTextP, drawImageP, drawImagesInLine, drawTextColumnCentered, drawParagraph, toBoldFormat } = require('../../utils/pdfGenerator'); 
 const { formatDateToDayMonthInLetters } = require('../../utils/dateManager');
-
-generatePDFGridLayout(
-    path.resolve(__dirname, '../../assets/templates/constPartFacuInge01.pdf'),  
-    path.resolve(__dirname, '../../assets/generated/constPartFacuInge01Grid.pdf')
-);
 
 const generateCertificate = async ({
     templatePath,
@@ -32,9 +27,6 @@ const generateCertificate = async ({
     // Read template
     templatePath = path.resolve(__dirname, "../../assets/templates/constPartFacuInge01.pdf");
     const templateBytes = fs.readFileSync(templatePath);
-
-    // dibujar cuadricula
-    // await generatePDFGridLayout(templatePath, path.resolve(__dirname, '../../assets/generated/constPartFacuInge01Grid.pdf'));
 
     // Document
     const pdfDoc = await PDFDocument.load(templateBytes);
