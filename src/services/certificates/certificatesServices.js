@@ -12,8 +12,10 @@ const { getDateInLetters } = require('../../utils/dateManager.js');
 const { generateQRCode, extractBase64 } = require('../../utils/qrcodeManager.js');
 const { uploadFileToS3 } = require('../../utils/s3Client.js');
 const { saveMedia } = require('../../models/media/MediaModel.js');
+const { generateCertificateCode, generateCourseAbbreviation, parseSigners } = require('../../utils/certificatesManager.js');
 
 const fs = require('fs');
+const { updateIssuedCertificatesAccount } = require('../../models/operational/OperationalUnitsModel.js');
 
 class CertificateServices {
 
@@ -33,11 +35,10 @@ class CertificateServices {
 
             let { courseInfo, enrollments, certificates } = await this.getInfoForCertificate(courseId);
 
-            console.log(courseInfo);
             courseInfo = courseInfo[0];
 
             let correlative = courseInfo.certifyingOpUnitCertificateIssued + 1;
-            const courseNameAbb = this.generateCourseAbbreviation(courseInfo.courseName); // Course Name Abbreviature
+            const courseNameAbb = generateCourseAbbreviation(courseInfo.courseName); // Course Name Abbreviature
 
             const issueDate = new Date();
 
@@ -54,7 +55,7 @@ class CertificateServices {
                 const templateConfig = templateMapper[templateKey];
                 const generate = templateConfig.generate;
 
-                const signers = this.parseSigners(certificate.signatures);
+                const signers = parseSigners(certificate.signatures);
 
                 const is_physically_signed = await this.signatureModel.isPhysicallySigned(courseId, templateKey);
 
@@ -64,10 +65,15 @@ class CertificateServices {
 
                 for (const enroll of enrollments) {
 
+                    if (!templateConfig.validate(enroll)) {
+                        console.log(`Estudiante ${enroll.studentDNI} no cumple criterios para ${templateKey}`);
+                        continue;
+                    }
+                    
                     const QRData = await generateQRCode('https://www.who.int/es/news-room/fact-sheets/detail/food-safety');
                     const qrCode = extractBase64(QRData);
 
-                    let uniqueCode = this.generateCertificateCode(courseInfo.certifyingOpUnitId, courseNameAbb, issueDate, correlative);
+                    let uniqueCode = generateCertificateCode(courseInfo.certifyingOpUnitId, courseNameAbb, issueDate, correlative);
 
                     try {
                         let file = await generate({
@@ -89,31 +95,16 @@ class CertificateServices {
                             endDate: courseInfo.endDate
                         });
 
-                        const localPath = path.join(__dirname, `../../assets/generated/${templateKey}`, file.fileName);
-                        console.log(`Guardando certificado en: ${localPath}`);
-                        fs.writeFileSync(localPath, file.pdfBytes);
+                        // Saving the certificate in database, S3 and local
+                        this.saveCertificate(templateKey, file, courseInfo, enroll, uniqueCode);
 
-                        // Guardar certificado en S3
-                        let fileURL = await uploadFileToS3(
-                            `courses/${courseInfo.courseName}/${templateKey}/${file.fileName}`, 
-                            file.pdfBytes, 
-                            false
-                        );
+                        // Updating certificates issued count
+                        correlative ++;
+                        await updateIssuedCertificatesAccount(courseInfo.certifyingOpUnitId, correlative);
 
-                        // Guardar URL en Media
-                        let  media = await saveMedia(file.fileName, fileURL, 5, `${templateKey} de ${enroll.studentDNI}.`)
-
-                        // Guardar certificado en base de datos
-                        let result = await this.certificateModel.saveCertificate(enroll.enrollmentId, uniqueCode, media.mediaId, 1, templateKey);
-                        console.log(result);
-
-                        // Pendiente 
-                        // Actualizar cantidad de certificados emitidos por unidad certificadora
-                        // Logica para evitar duplicidad
-                        // Criterio de aprobación para emisión de certificado
+                        // Logica para evitar duplicidad // pendiente
 
                         generated[templateKey].push({ student: enroll.studentDNI });
-                        correlative ++;
 
                     } catch (error) {
 
@@ -180,46 +171,31 @@ class CertificateServices {
         };
     }
 
-    parseSigners = (signatures) => {
-        return signatures.map(signature => ({
-            urlSignature: 'https://linkage-storage.s3.us-east-1.amazonaws.com/images/firma1.jpg', // URL fija (ajusta según necesites)
-            text: [
-                signature.signerName,
-                ...signature.signerTitle.split(',').map(title => title.trim())
-            ]
-        }));
-    }
+    saveCertificate = async (templateKey, file, courseInfo, enroll, uniqueCode) => {
+        try {
+            // Save certificate in local storage
+            const localPath = path.join(__dirname, `../../assets/generated/${templateKey}`, file.fileName);
+            console.log(`Guardando certificado en: ${localPath}`);
+            fs.writeFileSync(localPath, file.pdfBytes);
 
-    generateCertificateCode = (certifierCode, courseCode, issueDate, startCount) => {
-        // Extract month and year from date
-        const month = String(issueDate.getMonth() + 1).padStart(2, '0');
-        const year = issueDate.getFullYear();
-        
-        // Format correlative with leading zeros
-        const correlative = String(startCount).padStart(3, '0');
-        
-        return `${certifierCode}-${courseCode}-${month}-${year}-${correlative}`;
-    }
+            // Guardar certificado en S3
+            let fileURL = await uploadFileToS3(
+                `courses/${courseInfo.courseName}/${templateKey}/${file.fileName}`, 
+                file.pdfBytes, 
+                false
+            );
 
-    generateCourseAbbreviation = (courseName) => {
-        const ignoreWords = ['de', 'y', 'en', 'el', 'para', 'a'];
-        const keywords = courseName.split(' ')
-            .filter(word => !ignoreWords.includes(word.toLowerCase()))
-            .map(word => word.toUpperCase());
+            // Guardar URL en Media
+            let  media = await saveMedia(file.fileName, fileURL, 5, `${templateKey} de ${enroll.studentDNI}.`)
 
-        // Get first 3 letters from initials (e.g., "F" + "S" + "H" → "FSH")
-        let abbr = keywords.slice(0, 3).map(word => word[0]).join('');
-
-        // Add 3 more letters from the first keyword (e.g., "FOO" from "Food")
-        if (keywords.length > 0 && keywords[0].length >= 3) {
-            abbr += keywords[0].substring(0, 3);
-        } else {
-            abbr = abbr.padEnd(6, 'X'); // Pad if needed
+            // Guardar certificado en base de datos
+            let result = await this.certificateModel.saveCertificate(enroll.enrollmentId, uniqueCode, media.mediaId, 1, templateKey);
+            console.log(result);
+        } catch (error) {
+            console.error('Error saving certificate:', error);
+            throw new Error('Error saving certificate: ' + error.message);
         }
-
-        return abbr.slice(0, 6); // Ensure 6 characters
     }
-
 }
 
 module.exports = new CertificateServices();

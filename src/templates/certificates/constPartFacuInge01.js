@@ -87,21 +87,20 @@ const generateCertificate = async ({
     });
 
     // Paragraph
-    drawParagraph(
-        { 
+    drawParagraph({ 
         page, 
         font: generalFont, 
         boldFont: generalFontBold,
         text: `Impartido por la **Facultad** **de** **Ingeniería**, a través del ${toBoldFormat(operationalUnit)} y 
                 la **Coordinación** **de** **Vinculación**, del ${toBoldFormat(formatDateToDayMonthInLetters(startDate))} 
-                **al** ${toBoldFormat(formatDateToDayMonthInLetters(endDate))} con una duración total de **40** **horas.**`, 
+                **al** ${toBoldFormat(formatDateToDayMonthInLetters(endDate))} con una duración total de **${durationInHours}** **horas.**`, 
         x1: 60,
         x2: 775, 
         y: 242, 
         fontSize: 19, 
         lineHeight: 1.3, 
-        center: false }
-    );
+        center: false 
+    });
 
     // Issue Date
     drawTextP({

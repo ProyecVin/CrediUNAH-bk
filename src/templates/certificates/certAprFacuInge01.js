@@ -4,7 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const fsp = require('fs/promises');
 const axios = require('axios');
-const { drawTextP, drawTextColumnCentered, drawImageFromBase64, drawImageP, drawRotatedText, drawImagesInLine } = require('../../utils/pdfGenerator'); 
+const { drawTextP, drawTextColumnCentered, drawImageFromBase64, drawParagraph, drawRotatedText, drawImagesInLine, toBoldFormat } = require('../../utils/pdfGenerator'); 
+const { formatDateToDayMonthInLetters } = require('../../utils/dateManager');
 
 const generateCertificate = async ({
     templatePath,
@@ -20,7 +21,9 @@ const generateCertificate = async ({
     signers,
     qrBase64,
     uniqueCode,
-    is_physically_signed
+    is_physically_signed,
+    startDate,
+    endDate
 }) => {
         
     let templateBytes;
@@ -76,16 +79,18 @@ const generateCertificate = async ({
         is_centered: true
     });
 
-    // Adquired skills
-    drawTextP({
-        page,
-        text: skills + ',',
-        x: 400,
-        y: 284,
-        font: generalFont,
-        size: generalFontSize,
-        color: textColor,
-        is_centered: false
+    // Skills
+    drawParagraph({ 
+        page, 
+        font: generalFont, 
+        boldFont: generalFontBold,
+        text: `Posee conocimientos y competencias básicas para ${skills}, al aprobar el ${courseType.toLowerCase()}:`, 
+        x1: 60,
+        x2: 775, 
+        y: 284, 
+        fontSize: generalFontSize, 
+        lineHeight: 1.3, 
+        center: true 
     });
 
     // Course name
@@ -99,28 +104,20 @@ const generateCertificate = async ({
         is_centered: true
     });
 
-    // Operational unit
-    drawTextP({
-        page,
-        text: operationalUnit,
-        x: 414,
-        y: 230,
-        font: generalFontBold,
-        size: generalFontSize,
-        color: textColor,
-        is_centered: false
-    });
-
-    // Duration in hours
-    drawTextP({
-        page,
-        text: durationInHours + ' horas',
-        x: 429,
-        y: 203,
-        font: generalFontBold,
-        size: generalFontSize,
-        color: textColor,
-        is_centered: false
+    // Aditional text
+    drawParagraph({ 
+        page, 
+        font: generalFont, 
+        boldFont: generalFontBold,
+        text: `Impartido por la **Facultad** **de** **Ingeniería**, a través del ${toBoldFormat(operationalUnit)} y 
+                la **Coordinación** **de** **Vinculación**, del ${toBoldFormat(formatDateToDayMonthInLetters(startDate))} 
+                **al** ${toBoldFormat(formatDateToDayMonthInLetters(endDate))} con una duración total de **${durationInHours}** **horas.**`, 
+        x1: 60,
+        x2: 775, 
+        y: 230, 
+        fontSize: generalFontSize, 
+        lineHeight: 2, 
+        center: false 
     });
 
     // Date
@@ -135,47 +132,37 @@ const generateCertificate = async ({
         is_centered: false
     });
 
-    // Type 
-    drawTextP({
-        page,
-        text: courseType.toLowerCase() + ':',
-        x: 667,
-        y: 284,
-        font: generalFont,
-        size: generalFontSize,
-        color: textColor,
-        is_centered: false
-    });
+    // Logos
+    const logosToDraw = logos.filter(logo => logo.URL).map(logo => ({
+        path: logo.URL,
+        height: 71.28 // Fixed height for all
+    }));
 
-    // Logo
-    for (const logo of logos) {
-        if(logo.logoOrder == 1){
-            await drawImageP({
-                pdfDoc,
-                page,
-                imagePath: logo.URL,
-                x: 82,
-                y: 480.96, 
-                height: 71.28
-            });
-        }
-    }
+    await drawImagesInLine({
+        pdfDoc,
+        page,
+        spacing: 225,   
+        y: 480.96,
+        images: logosToDraw
+    });
 
     // Signers
     // Signatures images
-    const signatureImages = signers.filter(signer => signer.urlSignature).map(signer => ({
-        path: signer.urlSignature,
-        height: 55 // Fixed height for all
-    }));
+    if( is_physically_signed) {
+        const signatureImages = signers.filter(signer => signer.urlSignature).map(signer => ({
+            path: signer.urlSignature,
+            height: 55 // Fixed height for all
+        }));
 
-    if (signatureImages.length > 0) {
-        await drawImagesInLine({
-            pdfDoc,
-            page,
-            spacing: 95,
-            images: signatureImages,
-            y: 102 
-        });
+        if (signatureImages.length > 0) {
+            await drawImagesInLine({
+                pdfDoc,
+                page,
+                spacing: 95,
+                images: signatureImages,
+                y: 102 
+            });
+        }
     }
 
     // Signers info
