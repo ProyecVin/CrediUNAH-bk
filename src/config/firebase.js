@@ -94,10 +94,31 @@ const firebaseAuth = {
       console.error('Error al enviar email de verificación:', error.response?.data || error.message);
       throw error;
     }
+  },
+
+  // Envía correo de recuperación de contraseña
+  async sendPasswordResetEmail(email) {
+  try {
+    const response = await axios.post(
+      `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${apiKey}`,
+      {
+        requestType: 'PASSWORD_RESET',
+        email: email,
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error al enviar correo de restablecimiento de contraseña:', error.response?.data || error.message);
+    throw error;
   }
+}
+
 };
 
 module.exports = {
   admin,
   firebaseAuth
+  
+
 };
+

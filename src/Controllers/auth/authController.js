@@ -185,3 +185,33 @@ exports.getProfile = async (req, res) => {
     });
   }
 };
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Verifica si el correo está registrado en tu base de datos
+    const user = await userModel.getUserByEmail(email);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'No se encontró ningún usuario con ese correo electrónico.',
+      });
+    }
+
+    // Envía el correo de restablecimiento de contraseña
+    await firebaseAuth.sendPasswordResetEmail(email);
+
+    res.json({
+      success: true,
+      message: 'Se ha enviado un enlace para restablecer la contraseña a tu correo.',
+    });
+  } catch (error) {
+    console.error('Error en forgotPassword:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al procesar la solicitud de restablecimiento de contraseña',
+      error: error.message,
+    });
+  }
+};

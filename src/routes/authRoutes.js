@@ -11,6 +11,8 @@ const roleCheck = require('../middleware/roleCheck');
 router.post('/register', validateRegister, authController.register);
 router.post('/login', validateLogin, authController.login);
 
+router.post('/forgot-password', authController.forgotPassword)
+
 // Rutas protegidas (requieren autenticación)
 router.get('/profile', authMiddleware, roleCheck(['admin', 'usuario']), authController.getProfile);
 
