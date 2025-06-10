@@ -93,7 +93,7 @@ class EnrollmentModel {
 module.exports = new EnrollmentModel();*/
 
 const sql = require('mssql');
-const config = require('../../config/awsDB');
+const { getConnection } = require('../../config/awsDB');
 
 const CourseEnrollmentsModel = {
   create: async ({ student_id, course_id, enrolled_at, evaluated_at = null, status_id, grade = null, comments = null, last_updated_at, project_id = null }) => {

@@ -12,7 +12,7 @@ const enrollmentsRoutes = require('./routes/enrollmentsRoutes');
 const courseEnrollmentsRoutes = require('./routes/courseEnrollmentsRoutes');
 const projectsRoutes = require('./routes/projectsRoutes');
 const courseInterestRoutes = require('./routes/courseInterestRoutes');
-
+const excelRoutes = require('./routes/excelRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/courses', coursesRoutes); //Rafa
@@ -27,5 +27,6 @@ router.use('/excel', enrollmentsRoutes);//Rafa
 router.use('/enrollments', courseEnrollmentsRoutes);
 router.use('/projects', projectsRoutes);
 router.use('/course-interests', courseInterestRoutes);
+router.use('/excel', excelRoutes);
 module.exports = router;
 
