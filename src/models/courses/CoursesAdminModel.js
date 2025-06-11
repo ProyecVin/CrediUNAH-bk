@@ -1,10 +1,10 @@
 const sql = require('mssql');
-const config = require('../../config/database');
+const {getConnection} = require('../../config/database');
 
 class CoursesAdminModel {
     async getCoursesForAdmin() {
         try {
-            const pool = await sql.connect(config);
+            const pool = await getConnection();
             const result = await pool.request()
                 .query(`
                         SELECT 
@@ -36,7 +36,7 @@ class CoursesAdminModel {
 
     async getCourseInfoForAdmin(courseId) {
         try {
-            const pool = await sql.connect(config);
+            const pool = await getConnection();
             const result = await pool.request()
                 .query(`
                         SELECT 

@@ -1,21 +1,21 @@
 const sql = require('mssql');
-const config = require('../../config/awsDB');
+const {getConnection} = require('../../config/awsDB');
 
 const CourseInterestModel = {
   getAll: async () => {
-    const pool = await sql.connect(config);
+    const pool = await getConnection();
     return pool.request().execute('linkage.GetAllCourseInterests');
   },
 
   getByCourse: async (courseId) => {
-    const pool = await sql.connect(config);
+    const pool = await getConnection();
     return pool.request()
       .input('course_id', sql.Int, courseId)
       .execute('linkage.GetCourseInterestById');
   },
 
   create: async (data) => {
-    const pool = await sql.connect(config);
+    const pool = await getConnection();
     return pool.request()
       .input('contact_name', sql.NVarChar(255), data.contact_name)
       .input('contact_email', sql.NVarChar(255), data.contact_email)
@@ -30,7 +30,7 @@ const CourseInterestModel = {
   },
 
   update: async (data) => {
-    const pool = await sql.connect(config);
+    const pool = await getConnection();
     return pool.request()
       .input('ID', sql.Int, data.ID)
       .input('contact_name', sql.NVarChar(255), data.contact_name)

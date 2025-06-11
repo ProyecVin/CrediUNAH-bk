@@ -25,30 +25,30 @@ module.exports = new InstructorsModel();*/
 
 
 const sql = require('mssql');
-const config = require('../../config/awsDB');
+const {getConnection} = require('../../config/awsDB');
 
 const CourseInstructorsModel = {
   getAll: async () => {
-    const pool = await sql.connect(config);
+    const pool = await getConnection();
     return pool.request().execute('linkage.sp_GetAllCourseInstructors');
   },
 
   getByCourse: async (course_id) => {
-    const pool = await sql.connect(config);
+    const pool = await getConnection();
     return pool.request()
       .input('course_id', sql.Int, course_id)
       .execute('linkage.sp_GetInstructorsByCourse');
   },
 
   getByInstructor: async (user_id) => {
-    const pool = await sql.connect(config);
+    const pool = await getConnection();
     return pool.request()
       .input('user_id', sql.NVarChar(15), user_id)
       .execute('linkage.sp_GetCoursesByInstructor');
   },
 
   assign: async ({ user_id, course_id, assigned_at, is_titular }) => {
-    const pool = await sql.connect(config);
+    const pool = await getConnection();
     return pool.request()
       .input('user_id', sql.NVarChar(15), user_id)
       .input('course_id', sql.Int, course_id)
@@ -58,7 +58,7 @@ const CourseInstructorsModel = {
   },
 
   update: async ({ ID, assigned_at, is_titular }) => {
-    const pool = await sql.connect(config);
+    const pool = await getConnection();
     return pool.request()
       .input('ID', sql.Int, ID)
       .input('assigned_at', sql.DateTime, assigned_at)
@@ -67,7 +67,7 @@ const CourseInstructorsModel = {
   },
 
   remove: async (ID) => {
-    const pool = await sql.connect(config);
+    const pool = await getConnection();
     return pool.request()
       .input('ID', sql.Int, ID)
       .execute('linkage.sp_DeleteInstructorAssignment');

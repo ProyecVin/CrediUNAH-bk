@@ -97,7 +97,7 @@ const { getConnection } = require('../../config/awsDB');
 
 const CourseEnrollmentsModel = {
   create: async ({ student_id, course_id, enrolled_at, evaluated_at = null, status_id, grade = null, comments = null, last_updated_at, project_id = null }) => {
-    const pool = await sql.connect(config);
+    const pool = await getConnection();
     return pool.request()
       .input('student_id', sql.NVarChar(15), student_id)
       .input('course_id', sql.Int, course_id)
@@ -112,7 +112,7 @@ const CourseEnrollmentsModel = {
   },
 
   update: async ({ ID, evaluated_at, status_id, grade, comments, last_updated_at }) => {
-    const pool = await sql.connect(config);
+    const pool = await getConnection();
     return pool.request()
       .input('ID', sql.Int, ID)
       .input('evaluated_at', sql.DateTime, evaluated_at)
@@ -124,32 +124,32 @@ const CourseEnrollmentsModel = {
   },
 
   delete: async (ID) => {
-    const pool = await sql.connect(config);
+    const pool = await getConnection();
     return pool.request()
       .input('ID', sql.Int, ID)
       .execute('linkage.sp_DeleteCourseEnrollment');
   },
 
   getAll: async () => {
-    const pool = await sql.connect(config);
+    const pool = await getConnection();
     return pool.request().execute('linkage.sp_GetAllCourseEnrollments');
   },
 
   getById: async (ID) => {
-    const pool = await sql.connect(config);
+    const pool = await getConnection();
     return pool.request()
       .query(`SELECT * FROM linkage.Course_Enrollments WHERE ID = ${ID}`);
   },
 
   getByCourse: async (course_id) => {
-    const pool = await sql.connect(config);
+    const pool = await getConnection();
     return pool.request()
       .input('course_id', sql.Int, course_id)
       .execute('linkage.sp_GetEnrollmentsByCourse');
   },
 
   getByStudent: async (student_id) => {
-    const pool = await sql.connect(config);
+    const pool = await getConnection();
     return pool.request()
       .input('student_id', sql.NVarChar(15), student_id)
       .execute('linkage.sp_GetEnrollmentsByStudent');

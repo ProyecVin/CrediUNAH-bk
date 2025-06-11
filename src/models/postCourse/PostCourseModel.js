@@ -1,11 +1,11 @@
 
 const sql = require('mssql');
-const config = require('../../config/awsDB');
+const {getConnection} = require('../../config/awsDB');
 
 class CourseModel {
     async createCourse(courseData) {
         try {
-            const pool = await sql.connect(config);
+            const pool = await getConnection();
             const result = await pool.request()
                 .input('title', sql.NVarChar(255), courseData.title)
                 .input('description', sql.NVarChar(sql.MAX), courseData.description)
