@@ -30,7 +30,7 @@ const generateCourseAbbreviation = (courseName) => {
 
 const parseSigners = (signatures) => {
     return signatures.map(signature => ({
-        urlSignature: 'https://linkage-storage.s3.us-east-1.amazonaws.com/images/firma1.jpg', // URL fija (ajusta según necesites)
+        urlSignature: signature.URL,
         text: [
             signature.signerName,
             ...signature.signerTitle.split(',').map(title => title.trim())

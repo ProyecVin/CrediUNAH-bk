@@ -158,9 +158,9 @@ const generateCertificate = async ({
             await drawImagesInLine({
                 pdfDoc,
                 page,
-                spacing: 95,
+                spacing: 150,
                 images: signatureImages,
-                y: 102 
+                y: 104
             });
         }
     }
@@ -214,7 +214,7 @@ const generateCertificate = async ({
     // Save PDF
     const pdfBytes = await pdfDoc.save();
 
-    console.log(`✅ CAFI de ${studentDNI} generado en /new`);
+    console.log(`✅ CAFI de ${studentDNI} generado.`);
 
     return {
         pdfBytes,

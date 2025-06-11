@@ -173,12 +173,10 @@ const generateCertificate = async ({
 
     });
 
-    console.log(`✅ CPFI de ${studentDNI} generado en /generated`);
+    console.log(`✅ CPFI de ${studentDNI} generado.`);
         
     // Save PDF
     const pdfBytes = await pdfDoc.save();
-
-    console.log(`✅ CAFI de ${studentDNI} generado en /new`);
 
     return {
         pdfBytes,
