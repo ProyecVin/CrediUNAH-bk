@@ -4,7 +4,7 @@ const generateCertificateCode = (certifierCode, courseCode, issueDate, startCoun
     const year = issueDate.getFullYear();
     
     // Format correlative with leading zeros
-    const correlative = String(startCount).padStart(3, '0');
+    const correlative = String(startCount).padStart(6, '0');
     
     return `${certifierCode}-${courseCode}-${month}-${year}-${correlative}`;
 }
