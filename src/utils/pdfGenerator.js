@@ -64,42 +64,49 @@ const drawImageP = async ({ pdfDoc, page, imagePath, x, y, height, grayscale = f
     }
 };
 
-/**
- * Draw many images centered in line.
- * @param {*} param0 
- */
-const drawImagesInLine = async ({ pdfDoc, page, images, y = 700, spacing = 30 }) => {
-  // Load all images
+const drawImagesAligned = async ({
+  pdfDoc,
+  page,
+  images, // [{ path, height }]
+  y = 700,
+  spacing = 30,
+  align = 'center',
+  marginStart = 0, // se aplica solo si align === 'left'
+  marginEnd = 0,   // se aplica solo si align === 'right'
+  grayscale = false
+}) => {
+  // Cargar imágenes desde archivos locales o URLs remotas, con opción a grayscale
   const imageBuffers = await Promise.all(
     images.map(async (img) => {
+      let buffer;
+
       if (img.path.startsWith('http')) {
-        // In case remote URL
         const response = await axios.get(img.path, { responseType: 'arraybuffer' });
-        return {
-          buffer: response.data,
-          path: img.path
-        };
+        buffer = response.data;
       } else {
-        // In case local file
-        return {
-          buffer: await fsp.readFile(path.resolve(img.path)),
-          path: img.path
-        };
+        buffer = await fsp.readFile(path.resolve(img.path));
       }
+
+      if (grayscale) {
+        buffer = await sharp(buffer).grayscale().toBuffer();
+      }
+
+      return {
+        buffer,
+        path: img.path
+      };
     })
   );
 
-  // Embed images
+  // Incrustar imágenes
   const embeddedImages = await Promise.all(
     imageBuffers.map(async ({ buffer, path }) => {
       try {
-        // Try as PNG
         return await pdfDoc.embedPng(buffer);
-      } catch (e) {
+      } catch {
         try {
-          // Try as JPG
           return await pdfDoc.embedJpg(buffer);
-        } catch (e) {
+        } catch {
           console.error(`No se pudo cargar la imagen: ${path}`);
           throw new Error(`Formato no soportado para imagen: ${path}`);
         }
@@ -107,6 +114,7 @@ const drawImagesInLine = async ({ pdfDoc, page, images, y = 700, spacing = 30 })
     })
   );
 
+  // Escalar imágenes
   const scaledImages = embeddedImages.map((img, index) => {
     const height = images[index].height;
     const scale = height / img.height;
@@ -117,13 +125,22 @@ const drawImagesInLine = async ({ pdfDoc, page, images, y = 700, spacing = 30 })
     };
   });
 
-  // Calculate initial position
-  const totalWidth = scaledImages.reduce((acc, img) => acc + img.width, 0) + 
+  // Calcular ancho total con espaciado
+  const totalWidth = scaledImages.reduce((acc, img) => acc + img.width, 0) +
                      spacing * (scaledImages.length - 1);
   const pageWidth = page.getWidth();
-  let x = (pageWidth - totalWidth) / 2;
 
-  // Drawing images
+  // Calcular punto inicial según alineación
+  let x;
+  if (align === 'left') {
+    x = marginStart;
+  } else if (align === 'right') {
+    x = pageWidth - totalWidth - marginEnd;
+  } else {
+    x = (pageWidth - totalWidth) / 2;
+  }
+
+  // Dibujar imágenes
   for (const img of scaledImages) {
     await page.drawImage(img.image, {
       x,
@@ -134,6 +151,7 @@ const drawImagesInLine = async ({ pdfDoc, page, images, y = 700, spacing = 30 })
     x += img.width + spacing;
   }
 };
+
 
 /**
  * Draw text. It can be centered if you decide.
@@ -401,7 +419,7 @@ const toBoldFormat = (text) => {
 }
 
 module.exports = {
-  drawImagesInLine,
+  drawImagesAligned,
   drawTextP,
   generatePDFGridLayout,
   drawImageFromBase64,

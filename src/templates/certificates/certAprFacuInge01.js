@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const fsp = require('fs/promises');
 const axios = require('axios');
-const { drawTextP, drawTextColumnCentered, drawImageFromBase64, drawParagraph, drawRotatedText, drawImagesInLine, toBoldFormat } = require('../../utils/pdfGenerator'); 
+const { drawTextP, drawTextColumnCentered, drawImageFromBase64, drawParagraph, drawRotatedText, drawImagesAligned, toBoldFormat } = require('../../utils/pdfGenerator'); 
 const { formatDateToDayMonthInLetters } = require('../../utils/dateManager');
 
 const generateCertificate = async ({
@@ -133,17 +133,23 @@ const generateCertificate = async ({
     });
 
     // Logos
-    const logosToDraw = logos.filter(logo => logo.URL).map(logo => ({
+    const logosToDraw = logos
+    .filter(logo => logo.URL)
+    .sort((a, b) => a.logoOrder - b.logoOrder) // Ordenar por logoOrder
+    .map(logo => ({
         path: logo.URL,
-        height: 71.28 // Fixed height for all
+        height: 71.28 // Altura fija
     }));
+    
+    console.log(logosToDraw);
 
-    await drawImagesInLine({
+    await drawImagesAligned({
         pdfDoc,
         page,
         spacing: 225,   
-        y: 480.96,
-        images: logosToDraw
+        y: 490.96,
+        images: logosToDraw,
+        align: 'center'
     });
 
     // Signers
@@ -155,12 +161,13 @@ const generateCertificate = async ({
         }));
 
         if (signatureImages.length > 0) {
-            await drawImagesInLine({
+            await drawImagesAligned({
                 pdfDoc,
                 page,
                 spacing: 150,
                 images: signatureImages,
-                y: 104
+                y: 104,
+                align: 'center'
             });
         }
     }
