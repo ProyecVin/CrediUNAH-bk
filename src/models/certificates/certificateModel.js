@@ -68,6 +68,21 @@ class CertificateModel {
         };
 
     };
+
+    isCertificateIssued = async (enrollmentId, certificateTypeId) => {
+        try {
+            const pool = await getConnection();
+            const result = await pool.request().query(`
+                SELECT 1 as result
+                FROM linkage.Certificates c
+                WHERE c.enrollment_id = ${enrollmentId}
+                AND c.certificate_type_id = '${certificateTypeId}';
+            `);
+            return result.recordset;        
+        } catch (error) {
+            return error;
+        }
+    }
 }
 
 module.exports = new CertificateModel();

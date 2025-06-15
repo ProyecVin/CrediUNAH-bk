@@ -1,6 +1,7 @@
 // src/models/operational/Courses.js
-const { getConnection, sql } = require('mssql');
+const { sql } = require('mssql');
 const config = require('../../config/database');
+const { getConnection } = require('../../config/awsDB');
 const { uploadFileToS3 } = require('../../utils/s3');  
 
 class CourseModel { 
@@ -214,6 +215,8 @@ class CourseModel {
                     C.DESCRIPTION AS description, 
                     C.DURATION_IN_HOURS AS durationInHours, 
                     C.SKILLS AS skills,
+                    C.START_DATE AS startDate,
+                    C.END_DATE AS endDate,
                     OU.ID AS operationalUnitId, 
                     OU2.ID AS certifyingOpUnitId,
                     OU.NAME AS operationalUnitName,

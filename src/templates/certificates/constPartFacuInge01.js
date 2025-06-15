@@ -3,7 +3,7 @@ var fontkit = require('fontkit');
 const fs = require('fs');
 const path = require('path');
 const fsp = require('fs/promises');
-const { drawTextP, drawImageP, drawImagesInLine, drawTextColumnCentered, drawParagraph, toBoldFormat } = require('../../utils/pdfGenerator'); 
+const { drawTextP, drawImageP, drawImagesAligned, drawTextColumnCentered, drawParagraph, toBoldFormat } = require('../../utils/pdfGenerator'); 
 const { formatDateToDayMonthInLetters } = require('../../utils/dateManager');
 
 const generateCertificate = async ({
@@ -87,21 +87,20 @@ const generateCertificate = async ({
     });
 
     // Paragraph
-    drawParagraph(
-        { 
+    drawParagraph({ 
         page, 
         font: generalFont, 
         boldFont: generalFontBold,
         text: `Impartido por la **Facultad** **de** **Ingeniería**, a través del ${toBoldFormat(operationalUnit)} y 
                 la **Coordinación** **de** **Vinculación**, del ${toBoldFormat(formatDateToDayMonthInLetters(startDate))} 
-                **al** ${toBoldFormat(formatDateToDayMonthInLetters(endDate))} con una duración total de **40** **horas.**`, 
+                **al** ${toBoldFormat(formatDateToDayMonthInLetters(endDate))} con una duración total de **${durationInHours}** **horas.**`, 
         x1: 60,
         x2: 775, 
         y: 242, 
         fontSize: 19, 
         lineHeight: 1.3, 
-        center: false }
-    );
+        center: false 
+    });
 
     // Issue Date
     drawTextP({
@@ -115,20 +114,39 @@ const generateCertificate = async ({
         is_centered: true
     });
 
-    // Logo
-    for (const logo of logos) {
-        if(logo.logoOrder == 1){
-            await drawImageP({
-                pdfDoc,
-                page,
-                imagePath: logo.URL,
-                x: 273,
-                y: 508, 
-                height: 60,
-                grayscale: true
-            });
-        }
-    }
+    // Logos
+    const logosToDraw = logos
+    .filter(logo => logo.URL)
+    .sort((a, b) => a.logoOrder - b.logoOrder) // by logoOrder
+    .map(logo => ({
+        path: logo.URL,
+        height: 60 
+    }));
+
+    await drawImagesAligned({
+        pdfDoc,
+        page,
+        spacing: 10,   
+        y: 508,
+        images: logosToDraw,
+        align: 'left',
+        marginStart: 90,
+        grayscale: true
+    });
+
+    // for (const logo of logos) {
+    //     if(logo.logoOrder == 1){
+    //         await drawImageP({
+    //             pdfDoc,
+    //             page,
+    //             imagePath: logo.URL,
+    //             x: 273,
+    //             y: 508, 
+    //             height: 60,
+    //             grayscale: true
+    //         });
+    //     }
+    // }
 
     // Signers
     // Signatures images
@@ -174,12 +192,10 @@ const generateCertificate = async ({
 
     });
 
-    console.log(`✅ CPFI de ${studentDNI} generado en /generated`);
+    console.log(`✅ CPFI de ${studentDNI} generado.`);
         
     // Save PDF
     const pdfBytes = await pdfDoc.save();
-
-    console.log(`✅ CAFI de ${studentDNI} generado en /new`);
 
     return {
         pdfBytes,
